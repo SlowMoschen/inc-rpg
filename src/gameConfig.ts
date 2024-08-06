@@ -8,19 +8,20 @@ export const GAME_CONFIG = {
 };
 
 // MARK: RESOURCE INTERFACES
-export const BASE_RESOURCE_NAMES = {
-  GOLD: "GOLD",
-  WOOD: "WOOD",
-  STONE: "STONE",
-  IRON: "IRON",
-  WHEAT: "WHEAT",
-  POPULATION: "POPULATION",
-};
+export enum BASE_RESOURCE_NAMES {
+  GOLD = "GOLD",
+  WOOD = "WOOD",
+  STONE = "STONE",
+  IRON = "IRON",
+  WHEAT = "WHEAT",
+  POPULATION = "POPULATION",
+}
 
-export const PROCESSED_RESOURCE_NAMES = {
-  SWORD: "SWORD",
-  BREAD: "BREAD",
-};
+export enum PROCESSED_RESOURCE_NAMES {
+  SWORD = "SWORD",
+  BREAD = "BREAD",
+  PLANK = "PLANK",
+}
 
 export type BaseResourceNames = keyof typeof BASE_RESOURCE_NAMES;
 export type ProcessedResourceNames = keyof typeof PROCESSED_RESOURCE_NAMES;
@@ -43,6 +44,7 @@ export interface Resource {
     base: number;
     perSecond: number;
     perClick: number;
+    multiplier: number;
   };
   productionCosts?: ProductionCosts;
   sellValues?: {
@@ -64,6 +66,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 1,
       perClick: 0,
+      multiplier: 1,
     },
     isUnlocked: true,
   },
@@ -75,6 +78,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 0,
+      multiplier: 1,
     },
     isUnlocked: true,
   },
@@ -86,6 +90,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
+      multiplier: 1,
     },
     sellValues: {
       gold: 1,
@@ -102,6 +107,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
+      multiplier: 1,
     },
     sellValues: {
       gold: 1,
@@ -118,6 +124,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
+      multiplier: 1,
     },
     sellValues: {
       gold: 1,
@@ -134,6 +141,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
+      multiplier: 1,
     },
     sellValues: {
       gold: 1,
@@ -154,10 +162,17 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
+      multiplier: 1,
     },
     productionCosts: {
-      [BASE_RESOURCE_NAMES.IRON]: 5,
-      [BASE_RESOURCE_NAMES.WOOD]: 2,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.IRON]: {
+        base: 2,
+        current: 2,
+      },
     },
     sellValues: {
       gold: 10,
@@ -174,13 +189,40 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
+      multiplier: 1,
     },
     productionCosts: {
-      [BASE_RESOURCE_NAMES.WHEAT]: 5,
+      [BASE_RESOURCE_NAMES.WHEAT]: {
+        base: 5,
+        current: 5,
+      },
     },
     sellValues: {
       gold: 5,
       exp: 2.5,
+    },
+    isAutoSelling: false,
+    isUnlocked: false,
+  },
+  {
+    name: PROCESSED_RESOURCE_NAMES.PLANK,
+    stored: 0,
+    maxStorage: 100,
+    productionValues: {
+      base: 0,
+      perSecond: 0,
+      perClick: 1,
+      multiplier: 1,
+    },
+    productionCosts: {
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 2,
+        current: 2,
+      },
+    },
+    sellValues: {
+      gold: 2,
+      exp: 1,
     },
     isAutoSelling: false,
     isUnlocked: false,
@@ -209,41 +251,30 @@ export const PROCESSED_RESOURCE_BUILDING_NAMES = {
 };
 
 export type HousingBuildingNames = keyof typeof HOUSING_BUILDING_NAMES;
-export type BaseResourceBuildingNames =
-  keyof typeof BASE_RESOURCE_BUILDING_NAMES;
-export type ProcessedResourceBuildingNames =
-  keyof typeof PROCESSED_RESOURCE_BUILDING_NAMES;
+export type BaseResourceBuildingNames = keyof typeof BASE_RESOURCE_BUILDING_NAMES;
+export type ProcessedResourceBuildingNames = keyof typeof PROCESSED_RESOURCE_BUILDING_NAMES;
 export type BuildingName =
   | HousingBuildingNames
   | BaseResourceBuildingNames
   | ProcessedResourceBuildingNames;
 
-type ResourceCosts = Partial<
-  Record<
-    ResourceName,
-    {
-      base: number;
-      current: number;
-    }
-  >
->;
-
+// MARK: BUILDING INTERFACE
 export interface Building {
   name: string;
   amount: number;
-  associatedResource: string;
+  associatedResource: ResourceName;
   costValues: {
     gold: {
       base: number;
       current: number;
     };
-    resources: ResourceCosts;
+    resources: ProductionCosts;
   };
   increaseValue: {
     base: number;
     current: number;
   };
-  perSecondResourceUsed?: ResourceCosts;
+  perSecondResourceUsed?: ProductionCosts;
   isUnlocked: boolean;
 }
 
@@ -537,14 +568,14 @@ export interface Upgrade {
   isUnlocked: boolean;
 }
 
-const UPGRADE_NAMES = {
-  WOOD_PRODUCTION: "x% more wood production",
-  STONE_PRODUCTION: "x% more stone production",
-  IRON_PRODUCTION: "x% more iron production",
-  WHEAT_PRODUCTION: "x% more wheat production",
-  SWORD_PRODUCTION: "x% more sword production",
-  BREAD_PRODUCTION: "x% more bread production",
-  POPULATION_TICK_RATE: "x% faster population growth",
+export enum UPGRADE_NAMES {
+  WOOD_PRODUCTION = "x% more wood production",
+  STONE_PRODUCTION = "x% more stone production",
+  IRON_PRODUCTION = "x% more iron production",
+  WHEAT_PRODUCTION = "x% more wheat production",
+  SWORD_PRODUCTION = "x% more sword production",
+  BREAD_PRODUCTION = "x% more bread production",
+  POPULATION_TICK_RATE = "x% faster population growth",
 };
 
 export type UpgradeNames = keyof typeof UPGRADE_NAMES;

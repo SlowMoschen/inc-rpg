@@ -5,6 +5,7 @@ export const GAME_CONFIG = {
   PRODUCTION_MULTIPLIER: 1.1,
   AUTO_SAVE_INTERVAL: 30000,
   AUTO_SAVE_KEY: "autoSave",
+  STARTING_EXP_TO_NEXT_LEVEL: 100,
 };
 
 // MARK: RESOURCE INTERFACES
@@ -21,6 +22,7 @@ export enum PROCESSED_RESOURCE_NAMES {
   SWORD = "SWORD",
   BREAD = "BREAD",
   PLANK = "PLANK",
+  BRICK = "BRICK",
 }
 
 export type BaseResourceNames = keyof typeof BASE_RESOURCE_NAMES;
@@ -36,21 +38,28 @@ export type ProductionCosts = Partial<
   >
 >;
 
+export type ResourceTypes = "BASE" | "PROCESSED";
+
+export interface ResourceProductionValues {
+  base: number;
+  perSecond: number;
+  perClick: number;
+  multiplier: number;
+}
+
+export interface SellValues {
+  gold: number;
+  exp: number;
+}
+
 export interface Resource {
   name: string;
+  type: ResourceTypes;
   stored: number;
   maxStorage: number | null;
-  productionValues: {
-    base: number;
-    perSecond: number;
-    perClick: number;
-    multiplier: number;
-  };
+  productionValues: ResourceProductionValues;
   productionCosts?: ProductionCosts;
-  sellValues?: {
-    gold: number;
-    exp: number;
-  };
+  sellValues?: SellValues;
   isAutoSelling?: boolean;
   isUnlocked: boolean;
 }
@@ -60,6 +69,7 @@ export type Resources = Record<ResourceName, Resource>;
 export const BASE_RESOURCES_CONFIG: Resource[] = [
   {
     name: BASE_RESOURCE_NAMES.POPULATION,
+    type: "BASE",
     stored: 0,
     maxStorage: 10,
     productionValues: {
@@ -72,6 +82,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: BASE_RESOURCE_NAMES.GOLD,
+    type: "BASE",
     stored: 0,
     maxStorage: null,
     productionValues: {
@@ -84,6 +95,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: BASE_RESOURCE_NAMES.WOOD,
+    type: "BASE",
     stored: 0,
     maxStorage: 100,
     productionValues: {
@@ -101,6 +113,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: BASE_RESOURCE_NAMES.STONE,
+    type: "BASE",
     stored: 0,
     maxStorage: 100,
     productionValues: {
@@ -118,6 +131,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: BASE_RESOURCE_NAMES.IRON,
+    type: "BASE",
     stored: 0,
     maxStorage: 100,
     productionValues: {
@@ -135,6 +149,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: BASE_RESOURCE_NAMES.WHEAT,
+    type: "BASE",
     stored: 0,
     maxStorage: 100,
     productionValues: {
@@ -156,6 +171,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
 export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
   {
     name: PROCESSED_RESOURCE_NAMES.SWORD,
+    type: "PROCESSED",
     stored: 0,
     maxStorage: 20,
     productionValues: {
@@ -183,6 +199,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: PROCESSED_RESOURCE_NAMES.BREAD,
+    type: "PROCESSED",
     stored: 0,
     maxStorage: 50,
     productionValues: {
@@ -206,6 +223,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
   },
   {
     name: PROCESSED_RESOURCE_NAMES.PLANK,
+    type: "PROCESSED",
     stored: 0,
     maxStorage: 100,
     productionValues: {
@@ -227,40 +245,80 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
     isAutoSelling: false,
     isUnlocked: false,
   },
+  {
+    name: PROCESSED_RESOURCE_NAMES.BRICK,
+    type: "PROCESSED",
+    stored: 0,
+    maxStorage: 100,
+    productionValues: {
+      base: 0,
+      perSecond: 0,
+      perClick: 1,
+      multiplier: 1,
+    },
+    productionCosts: {
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 2,
+        current: 2,
+      },
+    },
+    sellValues: {
+      gold: 2,
+      exp: 1,
+    },
+    isAutoSelling: false,
+    isUnlocked: false,
+  },
 ];
 
 // MARK: BUILDING INTERFACES
-export const HOUSING_BUILDING_NAMES = {
-  TENT: "TENT",
-  SMALL_HOUSE: "SMALL_HOUSE",
-  LARGE_HOUSE: "LARGE_HOUSE",
-  TAVERN: "TAVERN",
-};
+export enum HOUSING_BUILDING_NAMES {
+  TENT = "TENT",
+  SMALL_HOUSE = "SMALL_HOUSE",
+  LARGE_HOUSE = "LARGE_HOUSE",
+  TAVERN = "TAVERN",
+}
 
-export const BASE_RESOURCE_BUILDING_NAMES = {
-  WOODCUTTER: "WOODCUTTER",
-  QUARRY: "QUARRY",
-  IRON_MINE: "IRON_MINE",
-  FARM: "FARM",
-};
+export enum BASE_RESOURCE_BUILDING_NAMES {
+  WOODCUTTER = "WOODCUTTER",
+  QUARRY = "QUARRY",
+  IRON_MINE = "IRON_MINE",
+  FARM = "FARM",
+}
 
-export const PROCESSED_RESOURCE_BUILDING_NAMES = {
-  BLACKSMITH: "BLACKSMITH",
-  BAKERY: "BAKERY",
-  LUMBER_MILL: "LUMBER_MILL",
-};
+export enum PROCESSED_RESOURCE_BUILDING_NAMES {
+  BLACKSMITH = "BLACKSMITH",
+  LUMBER_MILL = "LUMBER_MILL",
+  STONECUTTER = "STONECUTTER",
+  BAKERY = "BAKERY",
+}
+
+export enum SPECIAL_BUILDING_NAMES {
+  MARKET = "MARKET",
+  BARRACKS = "BARRACKS",
+  TOWN_HALL = "TOWN_HALL",
+  WATCH_TOWER = "WATCH_TOWER",
+}
+
+export type BuildingTypes = "HOUSING" | "BASE_RESOURCE" | "PROCESSED_RESOURCE" | "SPECIAL";
 
 export type HousingBuildingNames = keyof typeof HOUSING_BUILDING_NAMES;
 export type BaseResourceBuildingNames = keyof typeof BASE_RESOURCE_BUILDING_NAMES;
 export type ProcessedResourceBuildingNames = keyof typeof PROCESSED_RESOURCE_BUILDING_NAMES;
+export type SpecialBuildingNames = keyof typeof SPECIAL_BUILDING_NAMES;
 export type BuildingName =
   | HousingBuildingNames
   | BaseResourceBuildingNames
-  | ProcessedResourceBuildingNames;
+  | ProcessedResourceBuildingNames
+  | SpecialBuildingNames;
+
+
+export type Buildings = Record<BuildingName, Building>;
 
 // MARK: BUILDING INTERFACE
 export interface Building {
   name: string;
+  type: BuildingTypes;
   amount: number;
   associatedResource: ResourceName;
   costValues: {
@@ -282,6 +340,7 @@ export interface Building {
 export const HOUSING_BUILDINGS_CONFIG: Building[] = [
   {
     name: HOUSING_BUILDING_NAMES.TENT,
+    type: "HOUSING",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
@@ -304,6 +363,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: HOUSING_BUILDING_NAMES.SMALL_HOUSE,
+    type: "HOUSING",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
@@ -326,6 +386,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: HOUSING_BUILDING_NAMES.LARGE_HOUSE,
+    type: "HOUSING",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
@@ -352,6 +413,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: HOUSING_BUILDING_NAMES.TAVERN,
+    type: "HOUSING",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
@@ -386,6 +448,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
 export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   {
     name: BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER,
+    type: "BASE_RESOURCE",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.WOOD,
     costValues: {
@@ -398,6 +461,10 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
           base: 10,
           current: 10,
         },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 1,
+          current: 1,
+        },
       },
     },
     increaseValue: {
@@ -408,6 +475,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: BASE_RESOURCE_BUILDING_NAMES.QUARRY,
+    type: "BASE_RESOURCE",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.STONE,
     costValues: {
@@ -424,6 +492,10 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
           base: 5,
           current: 5,
         },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 4,
+          current: 4,
+        },
       },
     },
     increaseValue: {
@@ -434,6 +506,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: BASE_RESOURCE_BUILDING_NAMES.IRON_MINE,
+    type: "BASE_RESOURCE",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.IRON,
     costValues: {
@@ -450,6 +523,10 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
           base: 5,
           current: 5,
         },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 4,
+          current: 4,
+        },
       },
     },
     increaseValue: {
@@ -460,6 +537,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: BASE_RESOURCE_BUILDING_NAMES.FARM,
+    type: "BASE_RESOURCE",
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.WHEAT,
     costValues: {
@@ -476,6 +554,10 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
           base: 5,
           current: 5,
         },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 2,
+          current: 2,
+        },
       },
     },
     increaseValue: {
@@ -490,6 +572,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
 export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   {
     name: PROCESSED_RESOURCE_BUILDING_NAMES.BLACKSMITH,
+    type: "PROCESSED_RESOURCE",
     amount: 0,
     associatedResource: PROCESSED_RESOURCE_NAMES.SWORD,
     costValues: {
@@ -510,6 +593,10 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
           base: 5,
           current: 5,
         },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 5,
+          current: 5,
+        },
       },
     },
     increaseValue: {
@@ -526,6 +613,7 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   },
   {
     name: PROCESSED_RESOURCE_BUILDING_NAMES.BAKERY,
+    type: "PROCESSED_RESOURCE",
     amount: 0,
     associatedResource: PROCESSED_RESOURCE_NAMES.BREAD,
     costValues: {
@@ -542,6 +630,10 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
           base: 10,
           current: 10,
         },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 5,
+          current: 5,
+        },
       },
     },
     increaseValue: {
@@ -555,6 +647,47 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
         current: 5,
       },
     },
+  },
+  {
+    name: PROCESSED_RESOURCE_BUILDING_NAMES.STONECUTTER,
+    type: "PROCESSED_RESOURCE",
+    amount: 0,
+    associatedResource: PROCESSED_RESOURCE_NAMES.BRICK,
+    costValues: {
+      gold: {
+        base: 100,
+        current: 100,
+      },
+      resources: {
+        [BASE_RESOURCE_NAMES.WOOD]: {
+          base: 20,
+          current: 20,
+        },
+        [BASE_RESOURCE_NAMES.STONE]: {
+          base: 10,
+          current: 10,
+        },
+        [BASE_RESOURCE_NAMES.IRON]: {
+          base: 5,
+          current: 5,
+        },
+        [BASE_RESOURCE_NAMES.POPULATION]: {
+          base: 5,
+          current: 5,
+        },
+      },
+    },
+    increaseValue: {
+      base: 1,
+      current: 1,
+    },
+    perSecondResourceUsed: {
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 5,
+        current: 5,
+      },
+    },
+    isUnlocked: false,
   },
 ];
 
@@ -576,7 +709,7 @@ export enum UPGRADE_NAMES {
   SWORD_PRODUCTION = "x% more sword production",
   BREAD_PRODUCTION = "x% more bread production",
   POPULATION_TICK_RATE = "x% faster population growth",
-};
+}
 
 export type UpgradeNames = keyof typeof UPGRADE_NAMES;
 
@@ -591,3 +724,72 @@ export const UPGRADES_CONFIG: Upgrade[] = [
     isUnlocked: false,
   },
 ];
+
+// MARK: LEVEL UNLOCKS
+export interface LevelUnlock {
+  level: number;
+  resources: ResourceName[];
+  buildings: BuildingName[];
+  upgrades: UpgradeNames[];
+}
+
+export const LEVEL_UNLOCKS: LevelUnlock[] = [
+  {
+    level: 3,
+    resources: [BASE_RESOURCE_NAMES.WHEAT],
+    buildings: [BASE_RESOURCE_BUILDING_NAMES.FARM],
+    upgrades: [],
+  },
+  {
+    level: 5,
+    resources: [BASE_RESOURCE_NAMES.IRON, PROCESSED_RESOURCE_NAMES.PLANK],
+    buildings: [
+      BASE_RESOURCE_BUILDING_NAMES.IRON_MINE,
+      PROCESSED_RESOURCE_BUILDING_NAMES.LUMBER_MILL,
+    ],
+    upgrades: [],
+  },
+  {
+    level: 7,
+    resources: [PROCESSED_RESOURCE_NAMES.BREAD, PROCESSED_RESOURCE_NAMES.BRICK],
+    buildings: [
+      PROCESSED_RESOURCE_BUILDING_NAMES.BAKERY,
+      PROCESSED_RESOURCE_BUILDING_NAMES.STONECUTTER,
+      HOUSING_BUILDING_NAMES.SMALL_HOUSE,
+    ],
+    upgrades: [],
+  },
+  {
+    level: 10,
+    resources: [PROCESSED_RESOURCE_NAMES.SWORD],
+    buildings: [PROCESSED_RESOURCE_BUILDING_NAMES.BLACKSMITH, HOUSING_BUILDING_NAMES.LARGE_HOUSE],
+    upgrades: [],
+  },
+];
+
+// MARK: GAME SETUPS
+export const INITIAL_RESOURCES: Resources = {
+  ...BASE_RESOURCES_CONFIG.reduce((acc, resource) => {
+    acc[resource.name as ResourceName] = resource;
+    return acc;
+  }, {} as Resources),
+  ...PROCESSED_RESOURCES_CONFIG.reduce((acc, resource) => {
+    acc[resource.name as ResourceName] = resource;
+    return acc;
+  }, {} as Resources),
+};
+
+export const INITIAL_BUILDINGS: Buildings = {
+  ...HOUSING_BUILDINGS_CONFIG.reduce((acc, building) => {
+    acc[building.name as BuildingName] = building;
+    return acc;
+  }, {} as Buildings),
+  ...BASE_RESOURCE_BUILDINGS_CONFIG.reduce((acc, building) => {
+    acc[building.name as BuildingName] = building;
+    return acc;
+  }, {} as Buildings),
+  ...PROCESSED_RESOURCE_BUILDINGS_CONFIG.reduce((acc, building) => {
+    acc[building.name as BuildingName] = building;
+    return acc;
+  }, {} as Buildings),
+};

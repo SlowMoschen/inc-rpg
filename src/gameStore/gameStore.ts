@@ -30,6 +30,11 @@ export interface GameStore {
     addExp: (exp: number) => void;
     unlockGameFeatures: () => void;
   };
+  resourceActions: {
+    produce: (resourceName: ResourceName, amount: number) => void;
+    consume: (resourceName: ResourceName, amount: number) => void;
+    sell: (resourceName: ResourceName, amount: number) => void;
+  };
   // produceResource: (resourceName: ResourceName, amount: number) => void;
   // consumeResource: (resourceName: ResourceName, amount: number) => void;
   // sellResource: (resourceName: ResourceName, amount: number) => void;
@@ -50,9 +55,9 @@ export const useGameStore = create<GameStore>((set) => ({
   buildings: INITIAL_BUILDINGS,
   upgrades: INITIAL_UPGRADES,
 
+  // MARK: PLAYER ACTIONS
   playerActions: {
-    setName: (name: string) =>
-      set((state) => ({ player: { ...state.player, name } })),
+    setName: (name: string) => set((state) => ({ player: { ...state.player, name } })),
 
     addExp: (exp: number) =>
       set((state) => {
@@ -86,7 +91,6 @@ export const useGameStore = create<GameStore>((set) => ({
         if (!currentLevelUnlock) return state;
 
         currentLevelUnlock.resources.forEach((resourceName) => {
-          console.log(`Unlocking resource: ${resourceName}`);
           state.resources[resourceName].isUnlocked = true;
         });
 
@@ -102,6 +106,63 @@ export const useGameStore = create<GameStore>((set) => ({
       });
     },
   },
+
+  // MARK: RESOURCE ACTIONS
+  resourceActions: {
+    produce: (resourceName: ResourceName, amount: number) =>
+      set((state) => {
+        const resource = state.resources[resourceName];
+        if (!resource.isUnlocked) return state;
+
+        let newAmount = Calc.add(resource.stored, amount);
+        if (resource.maxStorage && newAmount > resource.maxStorage) {
+          newAmount = resource.maxStorage;
+        }
+
+        return {
+          resources: {
+            ...state.resources,
+            [resourceName]: { ...resource, stored: newAmount },
+          },
+        };
+      }),
+
+    consume: (resourceName: ResourceName, amount: number) =>
+      set((state) => {
+        const resource = state.resources[resourceName];
+        if (amount > resource.stored) return state;
+
+        const newAmount = Calc.subtract(resource.stored, amount);
+        return {
+          resources: {
+            ...state.resources,
+            [resourceName]: { ...resource, stored: newAmount },
+          },
+        };
+      }),
+
+    sell: (resourceName: ResourceName, amount: number) =>
+      set((state) => {
+        const resource = state.resources[resourceName];
+        if (!resource.isUnlocked || !resource.sellValues || amount > resource.stored) return state;
+
+        const updatedStoredAmount = Calc.subtract(resource.stored, amount);
+        const newBalance = Calc.add(
+          state.resources.GOLD.stored,
+          Calc.multiply(resource.sellValues.gold, amount)
+        );
+
+        state.playerActions.addExp(resource.sellValues.exp);
+
+        return {
+          resources: {
+            ...state.resources,
+            [resourceName]: { ...resource, stored: updatedStoredAmount },
+            GOLD: { ...state.resources.GOLD, stored: newBalance },
+          },
+        };
+      }),
+  },
 }));
 
 // MARK: HELPER FUNCTIONS
@@ -109,11 +170,7 @@ export const trimToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
-export const scaleValue = (
-  baseValue: number,
-  amount: number,
-  scale: number
-): number => {
+export const scaleValue = (baseValue: number, amount: number, scale: number): number => {
   return trimToTwoDecimals(baseValue * Math.pow(scale, amount));
 };
 

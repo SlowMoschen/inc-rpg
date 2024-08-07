@@ -37,7 +37,6 @@ describe("scaleValue", () => {
       const expectedValue = baseCost * Math.pow(scale, amount);
       const expectedValueTrimmed = Math.round(expectedValue * 100) / 100;
 
-      console.log(expectedValueTrimmed);
       expect(scaleValue(baseCost, amount, scale)).toBe(expectedValueTrimmed);
     }
   });

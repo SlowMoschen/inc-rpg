@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import {
+  Building,
   BuildingName,
   Buildings,
   GAME_CONFIG,
@@ -34,6 +35,10 @@ export interface GameStore {
     produce: (resourceName: ResourceName, amount: number) => void;
     consume: (resourceName: ResourceName, amount: number) => void;
     sell: (resourceName: ResourceName, amount: number) => void;
+    increaseProduction: (resourceName: ResourceName, amount: number) => void;
+  };
+  buildingActions: {
+    buy: (buildingName: BuildingName) => void;
   };
   // produceResource: (resourceName: ResourceName, amount: number) => void;
   // consumeResource: (resourceName: ResourceName, amount: number) => void;
@@ -159,6 +164,86 @@ export const useGameStore = create<GameStore>((set) => ({
             ...state.resources,
             [resourceName]: { ...resource, stored: updatedStoredAmount },
             GOLD: { ...state.resources.GOLD, stored: newBalance },
+          },
+        };
+      }),
+
+    increaseProduction: (resourceName: ResourceName, amount: number) =>
+      set((state) => {
+        const resource = state.resources[resourceName];
+        if (!resource.isUnlocked) return state;
+
+        const newProduction = Calc.add(resource.productionValues.perSecond, amount);
+        return {
+          resources: {
+            ...state.resources,
+            [resourceName]: {
+              ...resource,
+              productionValues: { ...resource.productionValues, perSecond: newProduction },
+            },
+          },
+        };
+      }),
+  },
+
+  // MARK: BUILDING ACTIONS
+  buildingActions: {
+    buy: (buildingName: BuildingName) =>
+      set((state) => {
+        const building = state.buildings[buildingName];
+        if (!building.isUnlocked) return state;
+
+        const resourceCosts = Object.entries(building.costValues).map(([resourceName, costs]) => {
+          const resource = state.resources[resourceName as ResourceName];
+          if (costs.current > resource.stored)
+            throw new Error(`Not enough ${resourceName} to buy ${buildingName}`);
+          return { resourceName, costs };
+        });
+
+        resourceCosts.forEach(({ resourceName, costs }) => {
+          state.resourceActions.consume(resourceName as ResourceName, costs.current);
+        });
+
+        // Update associated resources
+        Object.entries(building.increaseValues).forEach(([resourceName, production]) => {
+          state.resourceActions.increaseProduction(
+            resourceName as ResourceName,
+            production.current
+          );
+        });
+
+        const newAmount = Calc.add(building.amount, 1);
+
+        const scaledCosts = Object.entries(building.costValues).reduce(
+          (acc, [resourceName, costs]) => {
+            if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
+
+            const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
+            return { ...acc, [resourceName]: { current: scaledCost, base: costs.base } };
+          },
+          {} as Building["costValues"]
+        );
+
+        const scaledIncreaseValues = Object.entries(building.increaseValues).reduce(
+          (acc, [resourceName, production]) => {
+            const scaledProduction = scaleValue(
+              production.base,
+              newAmount,
+              GAME_CONFIG.PRODUCTION_MULTIPLIER
+            );
+            return { ...acc, [resourceName]: { current: scaledProduction, base: production.base } };
+          },
+          {} as Building["increaseValues"]
+        );
+        return {
+          buildings: {
+            ...state.buildings,
+            [buildingName]: {
+              ...building,
+              amount: newAmount,
+              costValues: scaledCosts,
+              increaseValues: scaledIncreaseValues,
+            },
           },
         };
       }),

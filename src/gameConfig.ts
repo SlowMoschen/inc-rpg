@@ -1,8 +1,8 @@
 // MARK: GAME CONFIG
 export const GAME_CONFIG = {
   EXP_MULTIPLIER: 1.05,
-  COST_MULTIPLIER: 1.1,
-  PRODUCTION_MULTIPLIER: 1.1,
+  COST_MULTIPLIER: 1.07,
+  PRODUCTION_MULTIPLIER: 1.05,
   AUTO_SAVE_INTERVAL: 30000,
   AUTO_SAVE_KEY: "autoSave",
   STARTING_EXP_TO_NEXT_LEVEL: 100,
@@ -312,8 +312,16 @@ export type BuildingName =
   | ProcessedResourceBuildingNames
   | SpecialBuildingNames;
 
-
 export type Buildings = Record<BuildingName, Building>;
+export type BuildingCosts = Record<
+  BASE_RESOURCE_NAMES.GOLD,
+  {
+    base: number;
+    current: number;
+  }
+> &
+  Omit<ProductionCosts, BASE_RESOURCE_NAMES.GOLD>;
+export type ProductionIncreaseValues = ProductionCosts;
 
 // MARK: BUILDING INTERFACE
 export interface Building {
@@ -321,17 +329,8 @@ export interface Building {
   type: BuildingTypes;
   amount: number;
   associatedResource: ResourceName;
-  costValues: {
-    gold: {
-      base: number;
-      current: number;
-    };
-    resources: ProductionCosts;
-  };
-  increaseValue: {
-    base: number;
-    current: number;
-  };
+  costValues: BuildingCosts;
+  increaseValues: ProductionIncreaseValues;
   perSecondResourceUsed?: ProductionCosts;
   isUnlocked: boolean;
 }
@@ -344,20 +343,20 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
-      gold: {
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
         base: 10,
         current: 10,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 5,
-          current: 5,
-        },
-      },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: true,
   },
@@ -367,20 +366,20 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
-      gold: {
-        base: 50,
-        current: 50,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 20,
+        current: 20,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 20,
-          current: 20,
-        },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 10,
+        current: 10,
       },
     },
-    increaseValue: {
-      base: 5,
-      current: 5,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 5,
+        current: 5,
+      },
     },
     isUnlocked: false,
   },
@@ -390,24 +389,24 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
-      gold: {
-        base: 100,
-        current: 100,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 50,
+        current: 50,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 50,
-          current: 50,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 20,
-          current: 20,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 20,
+        current: 20,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 20,
+        current: 20,
       },
     },
-    increaseValue: {
-      base: 10,
-      current: 10,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 10,
+        current: 10,
+      },
     },
     isUnlocked: false,
   },
@@ -417,28 +416,28 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.POPULATION,
     costValues: {
-      gold: {
-        base: 200,
-        current: 200,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 100,
+        current: 100,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 100,
-          current: 100,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 50,
-          current: 50,
-        },
-        [BASE_RESOURCE_NAMES.IRON]: {
-          base: 20,
-          current: 20,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 50,
+        current: 50,
+      },
+      [BASE_RESOURCE_NAMES.IRON]: {
+        base: 20,
+        current: 20,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 50,
+        current: 50,
       },
     },
-    increaseValue: {
-      base: 20,
-      current: 20,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 20,
+        current: 20,
+      },
     },
     isUnlocked: false,
   },
@@ -452,24 +451,24 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.WOOD,
     costValues: {
-      gold: {
-        base: 50,
-        current: 50,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 10,
+        current: 10,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 10,
-          current: 10,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 1,
-          current: 1,
-        },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 1,
+        current: 1,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 10,
+        current: 10,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: true,
   },
@@ -479,28 +478,28 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.STONE,
     costValues: {
-      gold: {
-        base: 50,
-        current: 50,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 10,
+        current: 10,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 10,
-          current: 10,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 5,
-          current: 5,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 4,
-          current: 4,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 4,
+        current: 4,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 20,
+        current: 20,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: true,
   },
@@ -510,28 +509,28 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.IRON,
     costValues: {
-      gold: {
-        base: 50,
-        current: 50,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 10,
+        current: 10,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 10,
-          current: 10,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 5,
-          current: 5,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 4,
-          current: 4,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 4,
+        current: 4,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 20,
+        current: 20,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.IRON]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: false,
   },
@@ -541,28 +540,28 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: BASE_RESOURCE_NAMES.WHEAT,
     costValues: {
-      gold: {
-        base: 50,
-        current: 50,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 15,
+        current: 15,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 15,
-          current: 15,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 5,
-          current: 5,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 2,
-          current: 2,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 2,
+        current: 2,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 20,
+        current: 20,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [BASE_RESOURCE_NAMES.WHEAT]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: false,
   },
@@ -576,32 +575,32 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: PROCESSED_RESOURCE_NAMES.SWORD,
     costValues: {
-      gold: {
-        base: 100,
-        current: 100,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 20,
+        current: 20,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 20,
-          current: 20,
-        },
-        [BASE_RESOURCE_NAMES.IRON]: {
-          base: 10,
-          current: 10,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 5,
-          current: 5,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 5,
-          current: 5,
-        },
+      [BASE_RESOURCE_NAMES.IRON]: {
+        base: 10,
+        current: 10,
+      },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 50,
+        current: 50,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [PROCESSED_RESOURCE_NAMES.SWORD]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: false,
     perSecondResourceUsed: {
@@ -617,28 +616,28 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: PROCESSED_RESOURCE_NAMES.BREAD,
     costValues: {
-      gold: {
-        base: 100,
-        current: 100,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 35,
+        current: 35,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 35,
-          current: 35,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 10,
-          current: 10,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 5,
-          current: 5,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 10,
+        current: 10,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 50,
+        current: 50,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [PROCESSED_RESOURCE_NAMES.BREAD]: {
+        base: 1,
+        current: 1,
+      },
     },
     isUnlocked: false,
     perSecondResourceUsed: {
@@ -654,32 +653,32 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
     amount: 0,
     associatedResource: PROCESSED_RESOURCE_NAMES.BRICK,
     costValues: {
-      gold: {
-        base: 100,
-        current: 100,
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 20,
+        current: 20,
       },
-      resources: {
-        [BASE_RESOURCE_NAMES.WOOD]: {
-          base: 20,
-          current: 20,
-        },
-        [BASE_RESOURCE_NAMES.STONE]: {
-          base: 10,
-          current: 10,
-        },
-        [BASE_RESOURCE_NAMES.IRON]: {
-          base: 5,
-          current: 5,
-        },
-        [BASE_RESOURCE_NAMES.POPULATION]: {
-          base: 5,
-          current: 5,
-        },
+      [BASE_RESOURCE_NAMES.STONE]: {
+        base: 10,
+        current: 10,
+      },
+      [BASE_RESOURCE_NAMES.IRON]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 5,
+        current: 5,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 50,
+        current: 50,
       },
     },
-    increaseValue: {
-      base: 1,
-      current: 1,
+    increaseValues: {
+      [PROCESSED_RESOURCE_NAMES.BRICK]: {
+        base: 1,
+        current: 1,
+      },
     },
     perSecondResourceUsed: {
       [BASE_RESOURCE_NAMES.STONE]: {

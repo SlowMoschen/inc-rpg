@@ -1,6 +1,6 @@
 // MARK: GAME CONFIG
 export const GAME_CONFIG = {
-  EXP_MULTIPLIER: 1.1,
+  EXP_MULTIPLIER: 1.05,
   COST_MULTIPLIER: 1.1,
   PRODUCTION_MULTIPLIER: 1.1,
   AUTO_SAVE_INTERVAL: 30000,
@@ -712,6 +712,7 @@ export enum UPGRADE_NAMES {
 }
 
 export type UpgradeNames = keyof typeof UPGRADE_NAMES;
+export type Upgrades = Record<UpgradeNames, Upgrade>;
 
 // MARK: UPGRADES
 export const UPGRADES_CONFIG: Upgrade[] = [
@@ -793,3 +794,8 @@ export const INITIAL_BUILDINGS: Buildings = {
     return acc;
   }, {} as Buildings),
 };
+
+export const INITIAL_UPGRADES: Upgrades = UPGRADES_CONFIG.reduce((acc, upgrade) => {
+  acc[upgrade.name as UpgradeNames] = upgrade;
+  return acc;
+}, {} as Upgrades);

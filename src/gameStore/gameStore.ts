@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   Building,
+  BuildingCosts,
   BuildingName,
   Buildings,
   GAME_CONFIG,
@@ -10,7 +11,7 @@ import {
   LEVEL_UNLOCKS,
   ResourceName,
   Resources,
-  Upgrades
+  Upgrades,
 } from "../gameConfig";
 
 export interface Player {
@@ -233,16 +234,21 @@ export const useGameStore = create<GameStore>((set) => ({
         // if Building generates a proccesed resource, decrease the production of the base resource
         if (building.type === "PROCESSED_RESOURCE") {
           Object.entries(building.perSecondResourceUsed!).forEach(([resourceName, amount]) => {
+            const resource = state.resources[resourceName as ResourceName];
+
+            if (amount.current > resource.productionValues.perSecond) {
+              throw new Error(`Production is not high enough to support ${buildingName}`);
+            }
+
             state.resourceActions.decreaseProduction(resourceName as ResourceName, amount.current);
           });
-       }
+        }
 
         const newAmount = Calc.add(building.amount, 1);
 
         const scaledCosts = Object.entries(building.costValues).reduce(
           (acc, [resourceName, costs]) => {
             if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
-
             const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
             return { ...acc, [resourceName]: { current: scaledCost, base: costs.base } };
           },
@@ -363,6 +369,11 @@ export const scaleValue = (baseValue: number, amount: number, scale: number): nu
   return trimToTwoDecimals(baseValue * Math.pow(scale, amount));
 };
 
+/**
+ * @name Calc
+ * @description A collection of functions for performing basic arithmetic operations
+ * @returns All functions return a number trimmed to two decimal places
+ */
 const Calc = {
   add: (a: number, b: number) => trimToTwoDecimals(a + b),
   subtract: (a: number, b: number) => trimToTwoDecimals(a - b),

@@ -5,9 +5,10 @@ import {
   Building,
   GAME_CONFIG,
   INITIAL_RESOURCES,
-  LEVEL_UNLOCKS
+  LEVEL_UNLOCKS,
+  PROCESSED_RESOURCE_BUILDING_NAMES,
 } from "../gameConfig";
-import { GameStore, scaleValue, useGameStore } from "./gameStore";
+import { GameStore, scaleValue, trimToTwoDecimals, useGameStore } from "./gameStore";
 
 // MARK: - Store initialization
 describe("Initialization", () => {
@@ -253,10 +254,7 @@ describe("Building actions", () => {
     resourceActions = GameStore.resourceActions;
   });
 
-  // MARK: TODO
-  // TODO: Add tests for proccesed resources buildings
   describe("buy", () => {
-
     beforeEach(() => {
       resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
       resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
@@ -326,8 +324,40 @@ describe("Building actions", () => {
     });
 
     it("should decrease perSecond production of resources when buying a building for procccesed resources", () => {
+      GameStore.playerActions.addExp(500);
+      GameStore.playerActions.addExp(500);
+      GameStore.playerActions.addExp(500);
+      GameStore.playerActions.addExp(500);
+
+      const preBuyState = getUpdatedState();
+      GameStore.resourceActions.produce(
+        "GOLD",
+        preBuyState.buildings.LUMBER_MILL.costValues.GOLD.current
+      );
+      expect(preBuyState.buildings.LUMBER_MILL.isUnlocked).toBe(true);
+
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const postBuyState = getUpdatedState();
+      expect(postBuyState.resources.WOOD.productionValues.perSecond).toBeGreaterThanOrEqual(
+        postBuyState.buildings.LUMBER_MILL.perSecondResourceUsed?.WOOD?.current!
+      );
+
+      buildingActions.buy(PROCESSED_RESOURCE_BUILDING_NAMES.LUMBER_MILL);
+
+      const postLumberState = getUpdatedState();
+      expect(postLumberState.buildings.LUMBER_MILL.amount).toBe(1);
       
+      expect(postLumberState.resources.WOOD.productionValues.perSecond).toBe(
+        trimToTwoDecimals(
+          postBuyState.resources.WOOD.productionValues.perSecond -
+            postBuyState.buildings.LUMBER_MILL.perSecondResourceUsed?.WOOD?.current!
+        )
+      );
     });
   });
 

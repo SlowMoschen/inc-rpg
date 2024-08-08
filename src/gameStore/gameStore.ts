@@ -35,6 +35,7 @@ export interface GameStore {
     consume: (resourceName: ResourceName, amount: number) => void;
     sell: (resourceName: ResourceName, amount: number) => void;
     increaseProduction: (resourceName: ResourceName, amount: number) => void;
+    decreaseProduction: (resourceName: ResourceName, amount: number) => void;
   };
   buildingActions: {
     buy: (buildingName: BuildingName) => void;
@@ -184,6 +185,23 @@ export const useGameStore = create<GameStore>((set) => ({
           },
         };
       }),
+
+    decreaseProduction: (resourceName: ResourceName, amount: number) =>
+      set((state) => {
+        const resource = state.resources[resourceName];
+        if (!resource.isUnlocked) return state;
+
+        const newProduction = Calc.subtract(resource.productionValues.perSecond, amount);
+        return {
+          resources: {
+            ...state.resources,
+            [resourceName]: {
+              ...resource,
+              productionValues: { ...resource.productionValues, perSecond: newProduction },
+            },
+          },
+        };
+      }),
   },
 
   // MARK: BUILDING ACTIONS
@@ -211,6 +229,13 @@ export const useGameStore = create<GameStore>((set) => ({
             production.current
           );
         });
+
+        // if Building generates a proccesed resource, decrease the production of the base resource
+        if (building.type === "PROCESSED_RESOURCE") {
+          Object.entries(building.perSecondResourceUsed!).forEach(([resourceName, amount]) => {
+            state.resourceActions.decreaseProduction(resourceName as ResourceName, amount.current);
+          });
+       }
 
         const newAmount = Calc.add(building.amount, 1);
 

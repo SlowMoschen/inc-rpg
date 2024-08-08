@@ -254,21 +254,25 @@ describe("Building actions", () => {
   });
 
   describe("buy", () => {
+
+    beforeEach(() => {
+      resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
+      resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
+      resourceActions.produce(BASE_RESOURCE_NAMES.GOLD, 100);
+      resourceActions.produce(BASE_RESOURCE_NAMES.POPULATION, 10);
+    });
+
     it("should have an buildingActions object with functions", () => {
       expect(GameStore.buildingActions).toBeDefined();
       expect(GameStore.buildingActions.buy).toBeDefined();
     });
 
     it("should throw an error when not enough resources to buy a building", () => {
+      resourceActions.consume(BASE_RESOURCE_NAMES.WOOD, 100);
       expect(() => buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER)).toThrowError();
     });
 
     it("should be able to buy a building", () => {
-      resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.GOLD, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.POPULATION, 10);
-
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
 
       const state = getUpdatedState();
@@ -285,11 +289,6 @@ describe("Building actions", () => {
     });
 
     it("should scale the cost of the building", () => {
-      resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.GOLD, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.POPULATION, 10);
-
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
 
@@ -316,17 +315,17 @@ describe("Building actions", () => {
     });
 
     it("should scale the production of associated resources", () => {
-      resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.GOLD, 100);
-      resourceActions.produce(BASE_RESOURCE_NAMES.POPULATION, 10);
-
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
       expect(getUpdatedState().buildings.WOODCUTTER.amount).toBe(2);
 
       const state = getUpdatedState();
       expect(state.resources.WOOD.productionValues.perSecond).toBe(1 + 1.05);
+    });
+
+    it("should decrease perSecond production of resources when buying a building for procccesed resources", () => {
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      
     });
   });
 

@@ -253,6 +253,8 @@ describe("Building actions", () => {
     resourceActions = GameStore.resourceActions;
   });
 
+  // MARK: TODO
+  // TODO: Add tests for proccesed resources buildings
   describe("buy", () => {
 
     beforeEach(() => {

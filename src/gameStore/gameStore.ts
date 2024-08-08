@@ -10,8 +10,7 @@ import {
   LEVEL_UNLOCKS,
   ResourceName,
   Resources,
-  UpgradeNames,
-  Upgrades,
+  Upgrades
 } from "../gameConfig";
 
 export interface Player {
@@ -39,6 +38,7 @@ export interface GameStore {
   };
   buildingActions: {
     buy: (buildingName: BuildingName) => void;
+    sell: (buildingName: BuildingName) => void;
   };
   // produceResource: (resourceName: ResourceName, amount: number) => void;
   // consumeResource: (resourceName: ResourceName, amount: number) => void;
@@ -244,6 +244,85 @@ export const useGameStore = create<GameStore>((set) => ({
               costValues: scaledCosts,
               increaseValues: scaledIncreaseValues,
             },
+          },
+        };
+      }),
+
+    sell: (buildingName: BuildingName) =>
+      set((state) => {
+        const building = state.buildings[buildingName];
+        if (building.amount <= 0) return state;
+
+        const lastGoldCost =
+          scaleValue(
+            building.costValues.GOLD.base,
+            building.amount - 1,
+            GAME_CONFIG.COST_MULTIPLIER
+          ) / 2;
+
+        const newBalance = Calc.add(state.resources.GOLD.stored, lastGoldCost);
+        const newAmount = Calc.subtract(building.amount, 1);
+
+        const scaledCosts = Object.entries(building.costValues).reduce(
+          (acc, [resourceName, costs]) => {
+            if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
+
+            const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
+            return { ...acc, [resourceName]: { current: scaledCost, base: costs.base } };
+          },
+          {} as Building["costValues"]
+        );
+
+        const scaledIncreaseValues = Object.entries(building.increaseValues).reduce(
+          (acc, [resourceName, production]) => {
+            const scaledProduction = scaleValue(
+              production.base,
+              newAmount,
+              GAME_CONFIG.PRODUCTION_MULTIPLIER
+            );
+            return { ...acc, [resourceName]: { current: scaledProduction, base: production.base } };
+          },
+          {} as Building["increaseValues"]
+        );
+
+        // Update associated resources with the last production value
+        const updatedResources = Object.entries(building.increaseValues).reduce(
+          (acc, [resourceName, production]) => {
+            const resource = state.resources[resourceName as ResourceName];
+            const lastCurrentProduction = scaleValue(
+              production.base,
+              building.amount - 1,
+              GAME_CONFIG.PRODUCTION_MULTIPLIER
+            );
+            const newProduction = Calc.subtract(
+              resource.productionValues.perSecond,
+              lastCurrentProduction
+            );
+            return {
+              ...acc,
+              [resourceName]: {
+                ...resource,
+                productionValues: { ...resource.productionValues, perSecond: newProduction },
+              },
+            };
+          },
+          {} as Resources
+        );
+
+        return {
+          buildings: {
+            ...state.buildings,
+            [buildingName]: {
+              ...building,
+              amount: newAmount,
+              costValues: scaledCosts,
+              increaseValues: scaledIncreaseValues,
+            },
+          },
+          resources: {
+            ...state.resources,
+            ...updatedResources,
+            GOLD: { ...state.resources.GOLD, stored: newBalance },
           },
         };
       }),

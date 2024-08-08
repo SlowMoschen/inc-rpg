@@ -1,12 +1,11 @@
-import { beforeEach, describe, expect, it, test } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   BASE_RESOURCE_BUILDING_NAMES,
   BASE_RESOURCE_NAMES,
   Building,
   GAME_CONFIG,
   INITIAL_RESOURCES,
-  LEVEL_UNLOCKS,
-  ResourceName,
+  LEVEL_UNLOCKS
 } from "../gameConfig";
 import { GameStore, scaleValue, useGameStore } from "./gameStore";
 
@@ -328,6 +327,100 @@ describe("Building actions", () => {
 
       const state = getUpdatedState();
       expect(state.resources.WOOD.productionValues.perSecond).toBe(1 + 1.05);
+    });
+  });
+
+  describe("sell", () => {
+    beforeEach(() => {
+      resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
+      resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
+      resourceActions.produce(BASE_RESOURCE_NAMES.GOLD, 100);
+      resourceActions.produce(BASE_RESOURCE_NAMES.POPULATION, 10);
+    });
+
+    it("should be able to sell a building", () => {
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const state = getUpdatedState();
+      expect(state.buildings.WOODCUTTER.amount).toBe(0);
+    });
+
+    it("should not be able to sell a building that is not unlocked", () => {
+      buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.IRON_MINE);
+      expect(getUpdatedState().buildings.IRON_MINE.amount).toBe(0);
+    });
+
+    it("should scale the cost of the building back down", () => {
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const goldCostForSecondBuilding = scaleValue(
+        getUpdatedState().buildings.WOODCUTTER.costValues.GOLD.base,
+        1,
+        GAME_CONFIG.COST_MULTIPLIER
+      );
+      const goldCost2Buildings =
+        getUpdatedState().buildings.WOODCUTTER.costValues.GOLD.base + goldCostForSecondBuilding;
+
+      expect(getUpdatedState().buildings.WOODCUTTER.amount).toBe(2);
+      expect(getUpdatedState().resources.WOOD.stored).toBe(100 - goldCost2Buildings);
+
+      buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const state = getUpdatedState();
+      expect(state.buildings.WOODCUTTER.amount).toBe(1);
+
+      const expectedScaledCosts = Object.entries(state.buildings.WOODCUTTER.costValues).reduce(
+        (acc, [resourceName, costs]) => {
+          if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
+          const scaledCost = scaleValue(
+            costs.base,
+            state.buildings.WOODCUTTER.amount,
+            GAME_CONFIG.COST_MULTIPLIER
+          );
+          return { ...acc, [resourceName]: { current: scaledCost, base: costs.base } };
+        },
+        {} as Building["costValues"]
+      );
+
+      expect(state.buildings.WOODCUTTER.costValues).toEqual(expectedScaledCosts);
+    });
+
+    it("should scale the production of associated resources back down", () => {
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const state = getUpdatedState();
+      expect(state.resources.WOOD.productionValues.perSecond).toBe(1 + 1.05);
+
+      buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      expect(getUpdatedState().resources.WOOD.productionValues.perSecond).toBe(1);
+    });
+
+    it("should refund the player half of the cost of the building", () => {
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+      buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const state = getUpdatedState();
+      expect(state.resources.GOLD.stored).toBe(95);
+    });
+
+    it("should scale down the increaseValues of the building", () => {
+      buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const preSellState = getUpdatedState();
+      expect(preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.current).toBe(
+        preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.base! *
+          GAME_CONFIG.PRODUCTION_MULTIPLIER
+      );
+
+      buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+
+      const postSellState = getUpdatedState();
+      expect(postSellState.buildings.WOODCUTTER.increaseValues.WOOD?.current).toBe(
+        preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.base!
+      );
     });
   });
 });

@@ -694,35 +694,57 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
 export interface Upgrade {
   name: string;
   cost: number;
-  effect: {
+  type: UpgradeType;
+  effects: {
     [key: string]: number;
   };
   isUnlocked: boolean;
 }
 
 export enum UPGRADE_NAMES {
-  WOOD_PRODUCTION = "x% more wood production",
-  STONE_PRODUCTION = "x% more stone production",
-  IRON_PRODUCTION = "x% more iron production",
-  WHEAT_PRODUCTION = "x% more wheat production",
-  SWORD_PRODUCTION = "x% more sword production",
-  BREAD_PRODUCTION = "x% more bread production",
-  POPULATION_TICK_RATE = "x% faster population growth",
+  WOOD_PRODUCTION = "WOOD_PRODUCTION",
+  WOOD_STORAGE = "WOOD_STORAGE",
+  STONE_PRODUCTION = "STONE_PRODUCTION",
+  STONE_STORAGE = "STONE_STORAGE",
+  IRON_PRODUCTION = "IRON_PRODUCTION",
+  IRON_STORAGE = "IRON_STORAGE",
+  WHEAT_PRODUCTION = "WHEAT_PRODUCTION",
+  WHEAT_STORAGE = "WHEAT_STORAGE",
+  SWORD_PRODUCTION = "SWORD_PRODUCTION",
+  SWORD_STORAGE = "SWORD_STORAGE",
+  BREAD_PRODUCTION = "BREAD_PRODUCTION",
+  BREAD_STORAGE = "BREAD_STORAGE",
+  PLANK_PRODUCTION = "PLANK_PRODUCTION",
+  PLANK_STORAGE = "PLANK_STORAGE",
+  BRICK_PRODUCTION = "BRICK_PRODUCTION",
+  BRICK_STORAGE = "BRICK_STORAGE",
+  POPULATION = "POPULATION",
 }
 
+export type UpgradeType = 'MAX_STORAGE' | 'PRODUCTION' | 'POPULATION';
 export type UpgradeNames = keyof typeof UPGRADE_NAMES;
 export type Upgrades = Record<UpgradeNames, Upgrade>;
 
 // MARK: UPGRADES
 export const UPGRADES_CONFIG: Upgrade[] = [
   {
-    name: "10% more wood production",
+    name: "Wood Production Upgrade 1",
+    type: "PRODUCTION",
     cost: 1000,
-    effect: {
-      [BASE_RESOURCE_NAMES.WOOD]: 0.1,
+    effects: {
+      [BASE_RESOURCE_NAMES.WOOD]: 0.01,
     },
     isUnlocked: false,
   },
+  {
+    name: "Wood Storage Upgrade 1",
+    type: "MAX_STORAGE",
+    cost: 1000,
+    effects: {
+      [BASE_RESOURCE_NAMES.WOOD]: 50,
+    },
+    isUnlocked: false,
+  }
 ];
 
 // MARK: LEVEL UNLOCKS

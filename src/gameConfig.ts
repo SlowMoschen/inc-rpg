@@ -570,6 +570,39 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
 // MARK: PROCESSED RES BUILDINGS
 export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
   {
+    name: PROCESSED_RESOURCE_BUILDING_NAMES.LUMBER_MILL,
+    type: "PROCESSED_RESOURCE",
+    amount: 0,
+    associatedResource: PROCESSED_RESOURCE_NAMES.PLANK,
+    costValues: {
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 10,
+        current: 10,
+      },
+      [BASE_RESOURCE_NAMES.POPULATION]: {
+        base: 2,
+        current: 2,
+      },
+      [BASE_RESOURCE_NAMES.GOLD]: {
+        base: 20,
+        current: 20,
+      },
+    },
+    increaseValues: {
+      [PROCESSED_RESOURCE_NAMES.PLANK]: {
+        base: 1,
+        current: 1,
+      },
+    },
+    isUnlocked: false,
+    perSecondResourceUsed: {
+      [BASE_RESOURCE_NAMES.WOOD]: {
+        base: 5,
+        current: 5,
+      },
+    },
+  },
+  {
     name: PROCESSED_RESOURCE_BUILDING_NAMES.BLACKSMITH,
     type: "PROCESSED_RESOURCE",
     amount: 0,

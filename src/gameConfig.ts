@@ -754,7 +754,7 @@ export enum UPGRADE_NAMES {
   POPULATION = "POPULATION",
 }
 
-export type UpgradeType = 'MAX_STORAGE' | 'PRODUCTION' | 'POPULATION';
+export type UpgradeType = "MAX_STORAGE" | "PRODUCTION" | "POPULATION";
 export type UpgradeNames = keyof typeof UPGRADE_NAMES;
 export type Upgrades = Record<UpgradeNames, Upgrade>;
 
@@ -770,14 +770,14 @@ export const UPGRADES_CONFIG: Upgrade[] = [
     isUnlocked: false,
   },
   {
-    name: "Wood Storage Upgrade 1",
+    name: "WOOD_STORAGE",
     type: "MAX_STORAGE",
     cost: 1000,
     effects: {
       [BASE_RESOURCE_NAMES.WOOD]: 50,
     },
     isUnlocked: false,
-  }
+  },
 ];
 
 // MARK: LEVEL UNLOCKS
@@ -793,7 +793,7 @@ export const LEVEL_UNLOCKS: LevelUnlock[] = [
     level: 3,
     resources: [BASE_RESOURCE_NAMES.WHEAT],
     buildings: [BASE_RESOURCE_BUILDING_NAMES.FARM],
-    upgrades: [],
+    upgrades: [UPGRADE_NAMES.WOOD_STORAGE],
   },
   {
     level: 5,

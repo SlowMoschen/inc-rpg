@@ -351,7 +351,7 @@ describe("Building actions", () => {
 
       const postLumberState = getUpdatedState();
       expect(postLumberState.buildings.LUMBER_MILL.amount).toBe(1);
-      
+
       expect(postLumberState.resources.WOOD.productionValues.perSecond).toBe(
         trimToTwoDecimals(
           postBuyState.resources.WOOD.productionValues.perSecond -

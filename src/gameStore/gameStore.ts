@@ -42,13 +42,6 @@ export interface GameStore {
     buy: (buildingName: BuildingName) => void;
     sell: (buildingName: BuildingName) => void;
   };
-  // produceResource: (resourceName: ResourceName, amount: number) => void;
-  // consumeResource: (resourceName: ResourceName, amount: number) => void;
-  // sellResource: (resourceName: ResourceName, amount: number) => void;
-  // buyBuilding: (buildingName: BuildingName) => void;
-  // buyUpgrade: (upgradeName: UpgradeNames) => void;
-  // saveGame: () => void;
-  // loadGame: () => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({

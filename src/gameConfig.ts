@@ -1,3 +1,4 @@
+
 // MARK: GAME CONFIG
 export const GAME_CONFIG = {
   EXP_MULTIPLIER: 1.05,
@@ -6,6 +7,31 @@ export const GAME_CONFIG = {
   AUTO_SAVE_INTERVAL: 30000,
   AUTO_SAVE_KEY: "autoSave",
   STARTING_EXP_TO_NEXT_LEVEL: 100,
+  POPULATION_GEN_TIME: 30000, // 30 seconds
+};
+
+// MARK: LEVEL UNLOCKS CONFIG
+export const UNLOCK_LEVELS = {
+  BASE_RESOURCES: {
+    IRON: 5,
+    WHEAT: 3,
+  },
+  PROCESSED_RESOURCES: {
+    SWORD: 10,
+    BREAD: 5,
+    PLANK: 5,
+    BRICK: 7,
+  },
+  HOUSING: {
+    SMALL_HOUSE: 7,
+    LARGE_HOUSE: 10,
+    TAVERN: 15,
+  },
+  UPGRADES: {
+    STEP_1: 5,
+    STEP_2: 10,
+    STEP_3: 15,
+  },
 };
 
 // MARK: RESOURCE INTERFACES
@@ -62,6 +88,7 @@ export interface Resource {
   sellValues?: SellValues;
   isAutoSelling?: boolean;
   isUnlocked: boolean;
+  unlockLevel: number;
 }
 export type Resources = Record<ResourceName, Resource>;
 
@@ -79,6 +106,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       multiplier: 1,
     },
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: BASE_RESOURCE_NAMES.GOLD,
@@ -92,6 +120,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
       multiplier: 1,
     },
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: BASE_RESOURCE_NAMES.WOOD,
@@ -110,6 +139,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: BASE_RESOURCE_NAMES.STONE,
@@ -128,6 +158,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: BASE_RESOURCE_NAMES.IRON,
@@ -146,6 +177,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.BASE_RESOURCES.IRON,
   },
   {
     name: BASE_RESOURCE_NAMES.WHEAT,
@@ -164,6 +196,7 @@ export const BASE_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.BASE_RESOURCES.WHEAT,
   },
 ];
 
@@ -196,6 +229,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.SWORD,
   },
   {
     name: PROCESSED_RESOURCE_NAMES.BREAD,
@@ -206,7 +240,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
       base: 0,
       perSecond: 0,
       perClick: 1,
-      multiplier: 1,
+      multiplier: 3,
     },
     productionCosts: {
       [BASE_RESOURCE_NAMES.WHEAT]: {
@@ -220,6 +254,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.BREAD,
   },
   {
     name: PROCESSED_RESOURCE_NAMES.PLANK,
@@ -244,6 +279,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.PLANK,
   },
   {
     name: PROCESSED_RESOURCE_NAMES.BRICK,
@@ -268,6 +304,7 @@ export const PROCESSED_RESOURCES_CONFIG: Resource[] = [
     },
     isAutoSelling: false,
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.BRICK,
   },
 ];
 
@@ -333,6 +370,7 @@ export interface Building {
   increaseValues: ProductionIncreaseValues;
   perSecondResourceUsed?: ProductionCosts;
   isUnlocked: boolean;
+  unlockLevel: number;
 }
 
 // MARK: HOUSING BUILDINGS
@@ -359,6 +397,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: HOUSING_BUILDING_NAMES.SMALL_HOUSE,
@@ -382,6 +421,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.HOUSING.SMALL_HOUSE,
   },
   {
     name: HOUSING_BUILDING_NAMES.LARGE_HOUSE,
@@ -409,6 +449,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.HOUSING.LARGE_HOUSE,
   },
   {
     name: HOUSING_BUILDING_NAMES.TAVERN,
@@ -440,6 +481,7 @@ export const HOUSING_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.HOUSING.TAVERN,
   },
 ];
 
@@ -471,6 +513,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: BASE_RESOURCE_BUILDING_NAMES.QUARRY,
@@ -502,6 +545,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: true,
+    unlockLevel: 1,
   },
   {
     name: BASE_RESOURCE_BUILDING_NAMES.IRON_MINE,
@@ -533,6 +577,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.BASE_RESOURCES.IRON,
   },
   {
     name: BASE_RESOURCE_BUILDING_NAMES.FARM,
@@ -564,6 +609,7 @@ export const BASE_RESOURCE_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.BASE_RESOURCES.WHEAT,
   },
 ];
 
@@ -601,6 +647,7 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
         current: 5,
       },
     },
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.PLANK,
   },
   {
     name: PROCESSED_RESOURCE_BUILDING_NAMES.BLACKSMITH,
@@ -642,6 +689,7 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
         current: 5,
       },
     },
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.SWORD,
   },
   {
     name: PROCESSED_RESOURCE_BUILDING_NAMES.BAKERY,
@@ -679,6 +727,7 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
         current: 5,
       },
     },
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.BREAD,
   },
   {
     name: PROCESSED_RESOURCE_BUILDING_NAMES.STONECUTTER,
@@ -720,106 +769,83 @@ export const PROCESSED_RESOURCE_BUILDINGS_CONFIG: Building[] = [
       },
     },
     isUnlocked: false,
+    unlockLevel: UNLOCK_LEVELS.PROCESSED_RESOURCES.BRICK,
   },
 ];
 
 // MARK: UPGRADE INTERFACES
 export interface Upgrade {
   name: string;
+  title: string;
+  description: string;
   cost: number;
   type: UpgradeType;
   effects: {
     [key: string]: number;
   };
   isUnlocked: boolean;
+  isPurchased: boolean;
+  unlockLevel: number;
 }
 
-export enum UPGRADE_NAMES {
-  WOOD_PRODUCTION = "WOOD_PRODUCTION",
-  WOOD_STORAGE = "WOOD_STORAGE",
-  STONE_PRODUCTION = "STONE_PRODUCTION",
-  STONE_STORAGE = "STONE_STORAGE",
-  IRON_PRODUCTION = "IRON_PRODUCTION",
-  IRON_STORAGE = "IRON_STORAGE",
-  WHEAT_PRODUCTION = "WHEAT_PRODUCTION",
-  WHEAT_STORAGE = "WHEAT_STORAGE",
-  SWORD_PRODUCTION = "SWORD_PRODUCTION",
-  SWORD_STORAGE = "SWORD_STORAGE",
-  BREAD_PRODUCTION = "BREAD_PRODUCTION",
-  BREAD_STORAGE = "BREAD_STORAGE",
-  PLANK_PRODUCTION = "PLANK_PRODUCTION",
-  PLANK_STORAGE = "PLANK_STORAGE",
-  BRICK_PRODUCTION = "BRICK_PRODUCTION",
-  BRICK_STORAGE = "BRICK_STORAGE",
-  POPULATION = "POPULATION",
-}
-
-export type UpgradeType = "MAX_STORAGE" | "PRODUCTION" | "POPULATION";
-export type UpgradeNames = keyof typeof UPGRADE_NAMES;
-export type Upgrades = Record<UpgradeNames, Upgrade>;
+export type UpgradeType = "STORAGE" | "PRODUCTION" | "POPULATION";
+export type UpgradeName = `${ResourceName}_PRODUCTION_${number}` | `${ResourceName}_STORAGE_${number}` | `POPULATION_${number}`;
+export type Upgrades = Record<UpgradeName, Upgrade>;
 
 // MARK: UPGRADES
 export const UPGRADES_CONFIG: Upgrade[] = [
   {
-    name: "Wood Production Upgrade 1",
-    type: "PRODUCTION",
-    cost: 1000,
+    name: `${BASE_RESOURCE_NAMES.WOOD}_PRODUCTION_1`,
+    title: "Wood Production I",
+    description: "Increase wood production by 1%.",
+    cost: 50,
+    type: 'PRODUCTION',
     effects: {
-      [BASE_RESOURCE_NAMES.WOOD]: 0.01,
+      [BASE_RESOURCE_NAMES.WOOD]: .01,
     },
     isUnlocked: false,
+    isPurchased: false,
+    unlockLevel: UNLOCK_LEVELS.UPGRADES.STEP_1,
   },
   {
-    name: "WOOD_STORAGE",
-    type: "MAX_STORAGE",
-    cost: 1000,
+    name: `${BASE_RESOURCE_NAMES.WOOD}_STORAGE_1`,
+    title: "Wood Storage I",
+    description: "Increase wood storage by 10.",
+    cost: 50,
+    type: 'STORAGE',
     effects: {
-      [BASE_RESOURCE_NAMES.WOOD]: 50,
+      [BASE_RESOURCE_NAMES.WOOD]: 10,
     },
     isUnlocked: false,
-  },
-];
-
-// MARK: LEVEL UNLOCKS
-export interface LevelUnlock {
-  level: number;
-  resources: ResourceName[];
-  buildings: BuildingName[];
-  upgrades: UpgradeNames[];
-}
-
-export const LEVEL_UNLOCKS: LevelUnlock[] = [
-  {
-    level: 3,
-    resources: [BASE_RESOURCE_NAMES.WHEAT],
-    buildings: [BASE_RESOURCE_BUILDING_NAMES.FARM],
-    upgrades: [UPGRADE_NAMES.WOOD_STORAGE],
+    isPurchased: false,
+    unlockLevel: UNLOCK_LEVELS.UPGRADES.STEP_1,
   },
   {
-    level: 5,
-    resources: [BASE_RESOURCE_NAMES.IRON, PROCESSED_RESOURCE_NAMES.PLANK],
-    buildings: [
-      BASE_RESOURCE_BUILDING_NAMES.IRON_MINE,
-      PROCESSED_RESOURCE_BUILDING_NAMES.LUMBER_MILL,
-    ],
-    upgrades: [],
+    name: `${BASE_RESOURCE_NAMES.WOOD}_PRODUCTION_2`,
+    title: "Wood Production II",
+    description: "Increase wood production by 2%.",
+    cost: 100,
+    type: 'PRODUCTION',
+    effects: {
+      [BASE_RESOURCE_NAMES.WOOD]: .02,
+    },
+    isUnlocked: false,
+    isPurchased: false,
+    unlockLevel: UNLOCK_LEVELS.UPGRADES.STEP_2, 
   },
   {
-    level: 7,
-    resources: [PROCESSED_RESOURCE_NAMES.BREAD, PROCESSED_RESOURCE_NAMES.BRICK],
-    buildings: [
-      PROCESSED_RESOURCE_BUILDING_NAMES.BAKERY,
-      PROCESSED_RESOURCE_BUILDING_NAMES.STONECUTTER,
-      HOUSING_BUILDING_NAMES.SMALL_HOUSE,
-    ],
-    upgrades: [],
-  },
-  {
-    level: 10,
-    resources: [PROCESSED_RESOURCE_NAMES.SWORD],
-    buildings: [PROCESSED_RESOURCE_BUILDING_NAMES.BLACKSMITH, HOUSING_BUILDING_NAMES.LARGE_HOUSE],
-    upgrades: [],
-  },
+    name: `${BASE_RESOURCE_NAMES.WOOD}_STORAGE_2`,
+    title: "Wood Storage II",
+    description: "Increase wood storage by 20.",
+    cost: 100,
+    type: 'STORAGE',
+    effects: {
+      [BASE_RESOURCE_NAMES.WOOD]: 20,
+    },
+    isUnlocked: false,
+    isPurchased: false,
+    unlockLevel: UNLOCK_LEVELS.UPGRADES.STEP_2,
+  }
 ];
 
 // MARK: GAME SETUPS
@@ -850,6 +876,6 @@ export const INITIAL_BUILDINGS: Buildings = {
 };
 
 export const INITIAL_UPGRADES: Upgrades = UPGRADES_CONFIG.reduce((acc, upgrade) => {
-  acc[upgrade.name as UpgradeNames] = upgrade;
+  acc[upgrade.name as UpgradeName] = upgrade;
   return acc;
 }, {} as Upgrades);

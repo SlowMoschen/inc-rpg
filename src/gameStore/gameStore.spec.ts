@@ -1,14 +1,19 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   BASE_RESOURCE_BUILDING_NAMES,
   BASE_RESOURCE_NAMES,
   Building,
   GAME_CONFIG,
   INITIAL_RESOURCES,
-  LEVEL_UNLOCKS,
   PROCESSED_RESOURCE_BUILDING_NAMES,
 } from "../gameConfig";
-import { GameStore, scaleValue, trimToTwoDecimals, useGameStore } from "./gameStore";
+import {
+  GameStore,
+  scaleValue,
+  trimToTwoDecimals,
+  useGameStore,
+} from "./gameStore";
+import { state } from "lit/decorators.js";
 
 // MARK: - Store initialization
 describe("Initialization", () => {
@@ -33,7 +38,9 @@ describe("Initialization", () => {
 
   it("should have an resources with all resources set to 0", () => {
     expect(GameStore.resources).toBeDefined();
-    expect(Object.values(GameStore.resources).every((obj) => obj.stored === 0)).toBe(true);
+    expect(
+      Object.values(GameStore.resources).every((obj) => obj.stored === 0)
+    ).toBe(true);
   });
 
   it("should only have Wood and Stone as starting resources", () => {
@@ -48,7 +55,9 @@ describe("Initialization", () => {
 
   it("should have an buildings with all buildings amount set to 0", () => {
     expect(GameStore.buildings).toBeDefined();
-    expect(Object.values(GameStore.buildings).every((obj) => obj.amount === 0)).toBe(true);
+    expect(
+      Object.values(GameStore.buildings).every((obj) => obj.amount === 0)
+    ).toBe(true);
   });
 
   it("should only have a tent as start houseing building", () => {
@@ -130,28 +139,17 @@ describe("Player actions", () => {
   });
 
   describe("unlockGameFeatures", () => {
-    it("should unlock resources, buildings and upgrades when leveling up", () => {
+    it("should unlock buildings, resources and upgrades", () => {
       playerActions.addExp(GAME_CONFIG.STARTING_EXP_TO_NEXT_LEVEL);
       playerActions.addExp(GAME_CONFIG.STARTING_EXP_TO_NEXT_LEVEL);
       playerActions.addExp(GAME_CONFIG.STARTING_EXP_TO_NEXT_LEVEL);
 
       const state = getUpdatedState();
-      const level3Unlock = LEVEL_UNLOCKS.find((unlock) => unlock.level === 3);
-      if (!level3Unlock) return;
 
       expect(state.player.level).toBe(3);
-
-      level3Unlock.resources.forEach((resourceName) => {
-        expect(state.resources[resourceName].isUnlocked).toBe(true);
-      });
-
-      level3Unlock.buildings.forEach((buildingName) => {
-        expect(state.buildings[buildingName].isUnlocked).toBe(true);
-      });
-
-      level3Unlock.upgrades.forEach((upgradeName) => {
-        expect(state.upgrades[upgradeName].isUnlocked).toBe(true);
-      });
+      expect(state.resources.WHEAT.isUnlocked).toBe(true);
+      expect(state.buildings.FARM.isUnlocked).toBe(true);
+      expect(state.buildings.BAKERY.isUnlocked).toBe(false);
     });
   });
 });
@@ -269,7 +267,9 @@ describe("Building actions", () => {
 
     it("should throw an error when not enough resources to buy a building", () => {
       resourceActions.consume(BASE_RESOURCE_NAMES.WOOD, 100);
-      expect(() => buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER)).toThrowError();
+      expect(() =>
+        buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER)
+      ).toThrowError();
     });
 
     it("should be able to buy a building", () => {
@@ -297,21 +297,35 @@ describe("Building actions", () => {
 
       const goldCost2Buildings =
         state.buildings.WOODCUTTER.costValues.GOLD.base +
-        scaleValue(state.buildings.WOODCUTTER.costValues.GOLD.base, 1, GAME_CONFIG.COST_MULTIPLIER);
+        scaleValue(
+          state.buildings.WOODCUTTER.costValues.GOLD.base,
+          1,
+          GAME_CONFIG.COST_MULTIPLIER
+        );
       expect(state.resources.WOOD.stored).toBe(100 - goldCost2Buildings);
 
       const building = state.buildings.WOODCUTTER;
       const costValues = building.costValues;
       const expectedScaledCosts = Object.entries(costValues).reduce(
         (acc, [resourceName, costs]) => {
-          if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
-          const scaledCost = scaleValue(costs.base, building.amount, GAME_CONFIG.COST_MULTIPLIER);
-          return { ...acc, [resourceName]: { current: scaledCost, base: costs.base } };
+          if (resourceName === "POPULATION")
+            return { ...acc, [resourceName]: costs };
+          const scaledCost = scaleValue(
+            costs.base,
+            building.amount,
+            GAME_CONFIG.COST_MULTIPLIER
+          );
+          return {
+            ...acc,
+            [resourceName]: { current: scaledCost, base: costs.base },
+          };
         },
         {} as Building["costValues"]
       );
 
-      expect(state.buildings.WOODCUTTER.costValues).toEqual(expectedScaledCosts);
+      expect(state.buildings.WOODCUTTER.costValues).toEqual(
+        expectedScaledCosts
+      );
     });
 
     it("should scale the production of associated resources", () => {
@@ -343,7 +357,9 @@ describe("Building actions", () => {
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
 
       const postBuyState = getUpdatedState();
-      expect(postBuyState.resources.WOOD.productionValues.perSecond).toBeGreaterThanOrEqual(
+      expect(
+        postBuyState.resources.WOOD.productionValues.perSecond
+      ).toBeGreaterThanOrEqual(
         postBuyState.buildings.LUMBER_MILL.perSecondResourceUsed?.WOOD?.current!
       );
 
@@ -355,7 +371,8 @@ describe("Building actions", () => {
       expect(postLumberState.resources.WOOD.productionValues.perSecond).toBe(
         trimToTwoDecimals(
           postBuyState.resources.WOOD.productionValues.perSecond -
-            postBuyState.buildings.LUMBER_MILL.perSecondResourceUsed?.WOOD?.current!
+            postBuyState.buildings.LUMBER_MILL.perSecondResourceUsed?.WOOD
+              ?.current!
         )
       );
     });
@@ -392,30 +409,38 @@ describe("Building actions", () => {
         GAME_CONFIG.COST_MULTIPLIER
       );
       const goldCost2Buildings =
-        getUpdatedState().buildings.WOODCUTTER.costValues.GOLD.base + goldCostForSecondBuilding;
+        getUpdatedState().buildings.WOODCUTTER.costValues.GOLD.base +
+        goldCostForSecondBuilding;
 
       expect(getUpdatedState().buildings.WOODCUTTER.amount).toBe(2);
-      expect(getUpdatedState().resources.WOOD.stored).toBe(100 - goldCost2Buildings);
+      expect(getUpdatedState().resources.WOOD.stored).toBe(
+        100 - goldCost2Buildings
+      );
 
       buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
 
       const state = getUpdatedState();
       expect(state.buildings.WOODCUTTER.amount).toBe(1);
 
-      const expectedScaledCosts = Object.entries(state.buildings.WOODCUTTER.costValues).reduce(
-        (acc, [resourceName, costs]) => {
-          if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
-          const scaledCost = scaleValue(
-            costs.base,
-            state.buildings.WOODCUTTER.amount,
-            GAME_CONFIG.COST_MULTIPLIER
-          );
-          return { ...acc, [resourceName]: { current: scaledCost, base: costs.base } };
-        },
-        {} as Building["costValues"]
-      );
+      const expectedScaledCosts = Object.entries(
+        state.buildings.WOODCUTTER.costValues
+      ).reduce((acc, [resourceName, costs]) => {
+        if (resourceName === "POPULATION")
+          return { ...acc, [resourceName]: costs };
+        const scaledCost = scaleValue(
+          costs.base,
+          state.buildings.WOODCUTTER.amount,
+          GAME_CONFIG.COST_MULTIPLIER
+        );
+        return {
+          ...acc,
+          [resourceName]: { current: scaledCost, base: costs.base },
+        };
+      }, {} as Building["costValues"]);
 
-      expect(state.buildings.WOODCUTTER.costValues).toEqual(expectedScaledCosts);
+      expect(state.buildings.WOODCUTTER.costValues).toEqual(
+        expectedScaledCosts
+      );
     });
 
     it("should scale the production of associated resources back down", () => {
@@ -426,7 +451,9 @@ describe("Building actions", () => {
       expect(state.resources.WOOD.productionValues.perSecond).toBe(1 + 1.05);
 
       buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
-      expect(getUpdatedState().resources.WOOD.productionValues.perSecond).toBe(1);
+      expect(getUpdatedState().resources.WOOD.productionValues.perSecond).toBe(
+        1
+      );
     });
 
     it("should refund the player half of the cost of the building", () => {
@@ -441,7 +468,9 @@ describe("Building actions", () => {
       buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
 
       const preSellState = getUpdatedState();
-      expect(preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.current).toBe(
+      expect(
+        preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.current
+      ).toBe(
         preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.base! *
           GAME_CONFIG.PRODUCTION_MULTIPLIER
       );
@@ -449,9 +478,97 @@ describe("Building actions", () => {
       buildingActions.sell(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
 
       const postSellState = getUpdatedState();
-      expect(postSellState.buildings.WOODCUTTER.increaseValues.WOOD?.current).toBe(
-        preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.base!
+      expect(
+        postSellState.buildings.WOODCUTTER.increaseValues.WOOD?.current
+      ).toBe(preSellState.buildings.WOODCUTTER.increaseValues.WOOD?.base!);
+    });
+  });
+});
+
+describe("Upgrade actions", () => {
+  let GameStore: GameStore;
+  let upgradeActions: GameStore["upgradeActions"];
+  let resourceActions: GameStore["resourceActions"];
+  let playerActions: GameStore["playerActions"];
+  let buildingActions: GameStore["buildingActions"];
+
+  const setupWoodProd = () => {
+    resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 100);
+    resourceActions.produce(BASE_RESOURCE_NAMES.STONE, 100);
+    resourceActions.produce(BASE_RESOURCE_NAMES.GOLD, 100);
+    resourceActions.produce(BASE_RESOURCE_NAMES.POPULATION, 10);
+
+    buildingActions.buy(BASE_RESOURCE_BUILDING_NAMES.WOODCUTTER);
+  };
+
+  beforeEach(() => {
+    useGameStore.setState(useGameStore.getInitialState());
+    GameStore = useGameStore.getState();
+    upgradeActions = GameStore.upgradeActions;
+    resourceActions = GameStore.resourceActions;
+    playerActions = GameStore.playerActions;
+    buildingActions = GameStore.buildingActions;
+  });
+
+  it("should have an upgradeActions object with functions", () => {
+    expect(GameStore.upgradeActions).toBeDefined();
+    expect(GameStore.upgradeActions.buy).toBeDefined();
+  });
+
+  describe("buy", () => {
+    beforeEach(() => {
+      setupWoodProd();
+    });
+
+    afterEach(() => {
+      useGameStore.setState(useGameStore.getInitialState());
+    });
+
+    it("should be able to buy an upgrade", () => {
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+
+      const preBuyState = getUpdatedState();
+
+      expect(preBuyState.buildings.WOODCUTTER.amount).toBe(1);
+      expect(preBuyState.player.level).toBe(6);
+      expect(preBuyState.upgrades["WOOD_PRODUCTION_1"].isUnlocked).toBe(true);
+
+      upgradeActions.buy("WOOD_PRODUCTION_1");
+
+      const postBuyState = getUpdatedState();
+      const upgradeEffects = postBuyState.upgrades["WOOD_PRODUCTION_1"].effects;
+      const expectedProduction =
+        preBuyState.resources.WOOD.productionValues.perSecond +
+        preBuyState.resources.WOOD.productionValues.perSecond *
+          upgradeEffects["WOOD"];
+
+      expect(postBuyState.upgrades["WOOD_PRODUCTION_1"].isPurchased).toBe(true);
+      expect(postBuyState.resources.WOOD.productionValues.perSecond).toBe(
+        expectedProduction
       );
     });
+
+    it("should increase maxStorage when buying an upgrade", () => {
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+      playerActions.addExp(500);
+
+      const preBuyState = getUpdatedState();
+      const preMaxStorage = preBuyState.resources.WOOD.maxStorage;
+
+      upgradeActions.buy("WOOD_STORAGE_1");
+
+      const postBuyState = getUpdatedState();
+      const postMaxStorage = postBuyState.resources.WOOD.maxStorage;
+
+      expect(postMaxStorage).toBe(preMaxStorage! + GameStore.upgrades["WOOD_STORAGE_1"].effects.WOOD);
+    });
+
   });
 });

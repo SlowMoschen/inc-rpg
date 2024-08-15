@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import {
-  Building,
   BuildingName,
   Buildings,
   GAME_CONFIG,
@@ -11,15 +10,16 @@ import {
   ResourceName,
   Resources,
   UpgradeName,
-  Upgrades,
+  Upgrades
 } from "../gameConfig";
+import { buyBuilding, sellBuilding } from "./buildingAction";
 import { addExp, setName, unlockFeatures } from "./playerActions";
 import {
   consumeResource,
   decProdPerSec,
   incProdPerSec,
   produceResource,
-  sellResource
+  sellResource,
 } from "./resourceActions";
 
 export interface Player {
@@ -95,177 +95,9 @@ export const useGameStore = create<GameStore>((set) => ({
 
   // MARK: BUILDING ACTIONS
   buildingActions: {
-    buy: (buildingName: BuildingName) =>
-      set((state) => {
-        const building = state.buildings[buildingName];
-        if (!building.isUnlocked) return state;
+    buy: (buildingName: BuildingName) => set((state) => buyBuilding(state, buildingName)),
 
-        const resourceCosts = Object.entries(building.costValues).map(([resourceName, costs]) => {
-          const resource = state.resources[resourceName as ResourceName];
-          if (costs.current > resource.stored)
-            throw new Error(`Not enough ${resourceName} to buy ${buildingName}`);
-          return { resourceName, costs };
-        });
-
-        resourceCosts.forEach(({ resourceName, costs }) => {
-          state.resourceActions.consume(resourceName as ResourceName, costs.current);
-        });
-
-        // Update associated resources
-        Object.entries(building.increaseValues).forEach(([resourceName, production]) => {
-          state.resourceActions.increaseProduction(
-            resourceName as ResourceName,
-            production.current
-          );
-        });
-
-        // if Building generates a proccesed resource, decrease the production of the base resource
-        if (building.type === "PROCESSED_RESOURCE") {
-          Object.entries(building.perSecondResourceUsed!).forEach(([resourceName, amount]) => {
-            const resource = state.resources[resourceName as ResourceName];
-
-            if (amount.current > resource.productionValues.perSecond) {
-              throw new Error(`Production is not high enough to support ${buildingName}`);
-            }
-
-            state.resourceActions.decreaseProduction(resourceName as ResourceName, amount.current);
-          });
-        }
-
-        const newAmount = Calc.add(building.amount, 1);
-
-        const scaledCosts = Object.entries(building.costValues).reduce(
-          (acc, [resourceName, costs]) => {
-            if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
-            const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
-            return {
-              ...acc,
-              [resourceName]: { current: scaledCost, base: costs.base },
-            };
-          },
-          {} as Building["costValues"]
-        );
-
-        const scaledIncreaseValues = Object.entries(building.increaseValues).reduce(
-          (acc, [resourceName, production]) => {
-            const scaledProduction = scaleValue(
-              production.base,
-              newAmount,
-              GAME_CONFIG.PRODUCTION_MULTIPLIER
-            );
-            return {
-              ...acc,
-              [resourceName]: {
-                current: scaledProduction,
-                base: production.base,
-              },
-            };
-          },
-          {} as Building["increaseValues"]
-        );
-        return {
-          buildings: {
-            ...state.buildings,
-            [buildingName]: {
-              ...building,
-              amount: newAmount,
-              costValues: scaledCosts,
-              increaseValues: scaledIncreaseValues,
-            },
-          },
-        };
-      }),
-
-    sell: (buildingName: BuildingName) =>
-      set((state) => {
-        const building = state.buildings[buildingName];
-        if (building.amount <= 0) return state;
-
-        const lastGoldCost =
-          scaleValue(
-            building.costValues.GOLD.base,
-            building.amount - 1,
-            GAME_CONFIG.COST_MULTIPLIER
-          ) / 2;
-
-        const newBalance = Calc.add(state.resources.GOLD.stored, lastGoldCost);
-        const newAmount = Calc.subtract(building.amount, 1);
-
-        const scaledCosts = Object.entries(building.costValues).reduce(
-          (acc, [resourceName, costs]) => {
-            if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
-
-            const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
-            return {
-              ...acc,
-              [resourceName]: { current: scaledCost, base: costs.base },
-            };
-          },
-          {} as Building["costValues"]
-        );
-
-        const scaledIncreaseValues = Object.entries(building.increaseValues).reduce(
-          (acc, [resourceName, production]) => {
-            const scaledProduction = scaleValue(
-              production.base,
-              newAmount,
-              GAME_CONFIG.PRODUCTION_MULTIPLIER
-            );
-            return {
-              ...acc,
-              [resourceName]: {
-                current: scaledProduction,
-                base: production.base,
-              },
-            };
-          },
-          {} as Building["increaseValues"]
-        );
-
-        // Update associated resources with the last production value
-        const updatedResources = Object.entries(building.increaseValues).reduce(
-          (acc, [resourceName, production]) => {
-            const resource = state.resources[resourceName as ResourceName];
-            const lastCurrentProduction = scaleValue(
-              production.base,
-              building.amount - 1,
-              GAME_CONFIG.PRODUCTION_MULTIPLIER
-            );
-            const newProduction = Calc.subtract(
-              resource.productionValues.perSecond,
-              lastCurrentProduction
-            );
-            return {
-              ...acc,
-              [resourceName]: {
-                ...resource,
-                productionValues: {
-                  ...resource.productionValues,
-                  perSecond: newProduction,
-                },
-              },
-            };
-          },
-          {} as Resources
-        );
-
-        return {
-          buildings: {
-            ...state.buildings,
-            [buildingName]: {
-              ...building,
-              amount: newAmount,
-              costValues: scaledCosts,
-              increaseValues: scaledIncreaseValues,
-            },
-          },
-          resources: {
-            ...state.resources,
-            ...updatedResources,
-            GOLD: { ...state.resources.GOLD, stored: newBalance },
-          },
-        };
-      }),
+    sell: (buildingName: BuildingName) => set((state) => sellBuilding(state, buildingName)),
   },
 
   // MARK: UPGRADE ACTIONS

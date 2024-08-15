@@ -6,7 +6,6 @@ import {
   INITIAL_BUILDINGS,
   INITIAL_RESOURCES,
   INITIAL_UPGRADES,
-  Resource,
   ResourceName,
   Resources,
   UpgradeName,
@@ -69,14 +68,12 @@ export const useGameStore = create<GameStore>((set) => ({
   upgrades: INITIAL_UPGRADES,
   populationGenTime: GAME_CONFIG.POPULATION_GEN_TIME,
 
-  // MARK: PLAYER ACTIONS
   playerActions: {
     setName: (name: string) => set((state) => setName(state, name)),
     addExp: (exp: number) => set((state) => addExp(state, exp)),
     unlockGameFeatures: () => set((state) => unlockFeatures(state)),
   },
 
-  // MARK: RESOURCE ACTIONS
   resourceActions: {
     produce: (resourceName: ResourceName, amount: number) =>
       set((state) => produceResource(state, resourceName, amount)),
@@ -94,14 +91,12 @@ export const useGameStore = create<GameStore>((set) => ({
       set((state) => decProdPerSec(state, resourceName, amount)),
   },
 
-  // MARK: BUILDING ACTIONS
   buildingActions: {
     buy: (buildingName: BuildingName) => set((state) => buyBuilding(state, buildingName)),
 
     sell: (buildingName: BuildingName) => set((state) => sellBuilding(state, buildingName)),
   },
 
-  // MARK: UPGRADE ACTIONS
   upgradeActions: {
     buy: (upgradeName: UpgradeName) => set((state) => buyUpgrade(state, upgradeName)),
   },

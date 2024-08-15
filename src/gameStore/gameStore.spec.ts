@@ -13,6 +13,7 @@ import {
   trimToTwoDecimals,
   useGameStore,
 } from "./gameStore";
+import { getUpdatedState } from "../utils";
 
 // MARK: - Store initialization
 describe("Initialization", () => {
@@ -75,7 +76,7 @@ describe("Initialization", () => {
     expect(filteredBuildings.length).toBe(2);
   });
 });
-const getUpdatedState = () => useGameStore.getState();
+
 // MARK: - Resource actions
 describe("Resource actions", () => {
   let GameStore: GameStore;

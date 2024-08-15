@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useGameStore, GameStore, scaleValue } from "../gameStore";
 import { GAME_CONFIG } from "../../gameConfig";
-
-const getUpdatedState = () => useGameStore.getState();
+import { getUpdatedState } from "../../utils";
 
 describe("Player actions", () => {
   let GameStore: GameStore;

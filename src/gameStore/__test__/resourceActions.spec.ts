@@ -37,6 +37,13 @@ describe("Resource actions", () => {
         resourceActions.produce(BASE_RESOURCE_NAMES.IRON, 1);
         expect(getUpdatedState().resources.IRON.stored).toBe(0);
       });
+
+      it("should use the resource multiplier when producing resources", () => {
+        GameStore.resources.WOOD.productionValues.multiplier = 2;
+        resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 1);
+        expect(getUpdatedState().resources.WOOD.stored).toBe(2);
+  
+      });
     });
   
     describe("consume", () => {
@@ -61,13 +68,14 @@ describe("Resource actions", () => {
       it("should be able to sell resources", () => {
         const goldValue = INITIAL_RESOURCES.WOOD.sellValues?.gold;
         const expValue = INITIAL_RESOURCES.WOOD.sellValues?.exp;
-  
-        resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 1);
+        
+        // resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 1);
         resourceActions.sell(BASE_RESOURCE_NAMES.WOOD, 1);
-  
-        expect(getUpdatedState().resources.WOOD.stored).toBe(0);
-        expect(getUpdatedState().resources.GOLD.stored).toBe(goldValue);
-        expect(getUpdatedState().player.exp).toBe(expValue);
+
+        const postSellState = getUpdatedState();
+        expect(postSellState.resources.WOOD.stored).toBe(0);
+        expect(postSellState.resources.GOLD.stored).toBe(goldValue);
+        expect(postSellState.player.exp).toBe(expValue);
       });
   
       it("should not be able to sell resources that are not unlocked", () => {
@@ -81,6 +89,7 @@ describe("Resource actions", () => {
       });
   
       it("should not be able to sell more resources than are stored", () => {
+        console.log(getUpdatedState().resources.WOOD.stored);
         resourceActions.produce(BASE_RESOURCE_NAMES.WOOD, 50);
         resourceActions.sell(BASE_RESOURCE_NAMES.WOOD, 100);
         expect(getUpdatedState().resources.WOOD.stored).toBe(50);

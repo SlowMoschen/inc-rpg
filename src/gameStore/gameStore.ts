@@ -11,8 +11,9 @@ import {
   ResourceName,
   Resources,
   UpgradeName,
-  Upgrades
+  Upgrades,
 } from "../gameConfig";
+import { addExp, setName, unlockFeatures } from "./playerActions";
 
 export interface Player {
   name: string;
@@ -62,60 +63,9 @@ export const useGameStore = create<GameStore>((set) => ({
 
   // MARK: PLAYER ACTIONS
   playerActions: {
-    setName: (name: string) =>
-      set((state) => ({ player: { ...state.player, name } })),
-
-    addExp: (exp: number) =>
-      set((state) => {
-        const newExp = Calc.add(state.player.exp, exp);
-
-        if (newExp >= state.player.expToNextLevel) {
-          state.playerActions.unlockGameFeatures();
-          return {
-            player: {
-              ...state.player,
-              level: Calc.add(state.player.level, 1),
-              exp: 0,
-              expToNextLevel: scaleValue(
-                state.player.expToNextLevel,
-                1,
-                GAME_CONFIG.EXP_MULTIPLIER
-              ),
-            },
-          };
-        }
-
-        return { player: { ...state.player, exp: newExp } };
-      }),
-
-    unlockGameFeatures: () => {
-      return set((state) => {
-        const level = state.player.level + 1; // Method is called before level is updated
-
-        // Unlock resources
-        Object.entries(state.resources).forEach(([resourceName, resource]) => {
-          if (resource.unlockLevel === level) {
-            state.resources[resourceName as ResourceName].isUnlocked = true;
-          }
-        });
-
-        // Unlock buildings
-        Object.entries(state.buildings).forEach(([buildingName, building]) => {
-          if (building.unlockLevel === level) {
-            state.buildings[buildingName as BuildingName].isUnlocked = true;
-          }
-        });
-
-        // Unlock upgrades
-        Object.entries(state.upgrades).forEach(([upgradeName, upgrade]) => {
-          if (upgrade.unlockLevel === level) {
-            state.upgrades[upgradeName as UpgradeName].isUnlocked = true;
-          }
-        });
-
-        return state;
-      });
-    },
+    setName: (name: string) => set((state) => setName(state, name)),
+    addExp: (exp: number) => set((state) => addExp(state, exp)),
+    unlockGameFeatures: () => set((state) => unlockFeatures(state)),
   },
 
   // MARK: RESOURCE ACTIONS
@@ -155,12 +105,7 @@ export const useGameStore = create<GameStore>((set) => ({
     sell: (resourceName: ResourceName, amount: number) =>
       set((state) => {
         const resource = state.resources[resourceName];
-        if (
-          !resource.isUnlocked ||
-          !resource.sellValues ||
-          amount > resource.stored
-        )
-          return state;
+        if (!resource.isUnlocked || !resource.sellValues || amount > resource.stored) return state;
 
         const updatedStoredAmount = Calc.subtract(resource.stored, amount);
         const newBalance = Calc.add(
@@ -184,10 +129,7 @@ export const useGameStore = create<GameStore>((set) => ({
         const resource = state.resources[resourceName];
         if (!resource.isUnlocked) return state;
 
-        const newProduction = Calc.add(
-          resource.productionValues.perSecond,
-          amount
-        );
+        const newProduction = Calc.add(resource.productionValues.perSecond, amount);
         return {
           resources: {
             ...state.resources,
@@ -207,10 +149,7 @@ export const useGameStore = create<GameStore>((set) => ({
         const resource = state.resources[resourceName];
         if (!resource.isUnlocked) return state;
 
-        const newProduction = Calc.subtract(
-          resource.productionValues.perSecond,
-          amount
-        );
+        const newProduction = Calc.subtract(resource.productionValues.perSecond, amount);
         return {
           resources: {
             ...state.resources,
@@ -233,65 +172,44 @@ export const useGameStore = create<GameStore>((set) => ({
         const building = state.buildings[buildingName];
         if (!building.isUnlocked) return state;
 
-        const resourceCosts = Object.entries(building.costValues).map(
-          ([resourceName, costs]) => {
-            const resource = state.resources[resourceName as ResourceName];
-            if (costs.current > resource.stored)
-              throw new Error(
-                `Not enough ${resourceName} to buy ${buildingName}`
-              );
-            return { resourceName, costs };
-          }
-        );
+        const resourceCosts = Object.entries(building.costValues).map(([resourceName, costs]) => {
+          const resource = state.resources[resourceName as ResourceName];
+          if (costs.current > resource.stored)
+            throw new Error(`Not enough ${resourceName} to buy ${buildingName}`);
+          return { resourceName, costs };
+        });
 
         resourceCosts.forEach(({ resourceName, costs }) => {
-          state.resourceActions.consume(
-            resourceName as ResourceName,
-            costs.current
-          );
+          state.resourceActions.consume(resourceName as ResourceName, costs.current);
         });
 
         // Update associated resources
-        Object.entries(building.increaseValues).forEach(
-          ([resourceName, production]) => {
-            state.resourceActions.increaseProduction(
-              resourceName as ResourceName,
-              production.current
-            );
-          }
-        );
+        Object.entries(building.increaseValues).forEach(([resourceName, production]) => {
+          state.resourceActions.increaseProduction(
+            resourceName as ResourceName,
+            production.current
+          );
+        });
 
         // if Building generates a proccesed resource, decrease the production of the base resource
         if (building.type === "PROCESSED_RESOURCE") {
-          Object.entries(building.perSecondResourceUsed!).forEach(
-            ([resourceName, amount]) => {
-              const resource = state.resources[resourceName as ResourceName];
+          Object.entries(building.perSecondResourceUsed!).forEach(([resourceName, amount]) => {
+            const resource = state.resources[resourceName as ResourceName];
 
-              if (amount.current > resource.productionValues.perSecond) {
-                throw new Error(
-                  `Production is not high enough to support ${buildingName}`
-                );
-              }
-
-              state.resourceActions.decreaseProduction(
-                resourceName as ResourceName,
-                amount.current
-              );
+            if (amount.current > resource.productionValues.perSecond) {
+              throw new Error(`Production is not high enough to support ${buildingName}`);
             }
-          );
+
+            state.resourceActions.decreaseProduction(resourceName as ResourceName, amount.current);
+          });
         }
 
         const newAmount = Calc.add(building.amount, 1);
 
         const scaledCosts = Object.entries(building.costValues).reduce(
           (acc, [resourceName, costs]) => {
-            if (resourceName === "POPULATION")
-              return { ...acc, [resourceName]: costs };
-            const scaledCost = scaleValue(
-              costs.base,
-              newAmount,
-              GAME_CONFIG.COST_MULTIPLIER
-            );
+            if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
+            const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
             return {
               ...acc,
               [resourceName]: { current: scaledCost, base: costs.base },
@@ -300,22 +218,23 @@ export const useGameStore = create<GameStore>((set) => ({
           {} as Building["costValues"]
         );
 
-        const scaledIncreaseValues = Object.entries(
-          building.increaseValues
-        ).reduce((acc, [resourceName, production]) => {
-          const scaledProduction = scaleValue(
-            production.base,
-            newAmount,
-            GAME_CONFIG.PRODUCTION_MULTIPLIER
-          );
-          return {
-            ...acc,
-            [resourceName]: {
-              current: scaledProduction,
-              base: production.base,
-            },
-          };
-        }, {} as Building["increaseValues"]);
+        const scaledIncreaseValues = Object.entries(building.increaseValues).reduce(
+          (acc, [resourceName, production]) => {
+            const scaledProduction = scaleValue(
+              production.base,
+              newAmount,
+              GAME_CONFIG.PRODUCTION_MULTIPLIER
+            );
+            return {
+              ...acc,
+              [resourceName]: {
+                current: scaledProduction,
+                base: production.base,
+              },
+            };
+          },
+          {} as Building["increaseValues"]
+        );
         return {
           buildings: {
             ...state.buildings,
@@ -346,14 +265,9 @@ export const useGameStore = create<GameStore>((set) => ({
 
         const scaledCosts = Object.entries(building.costValues).reduce(
           (acc, [resourceName, costs]) => {
-            if (resourceName === "POPULATION")
-              return { ...acc, [resourceName]: costs };
+            if (resourceName === "POPULATION") return { ...acc, [resourceName]: costs };
 
-            const scaledCost = scaleValue(
-              costs.base,
-              newAmount,
-              GAME_CONFIG.COST_MULTIPLIER
-            );
+            const scaledCost = scaleValue(costs.base, newAmount, GAME_CONFIG.COST_MULTIPLIER);
             return {
               ...acc,
               [resourceName]: { current: scaledCost, base: costs.base },
@@ -362,22 +276,23 @@ export const useGameStore = create<GameStore>((set) => ({
           {} as Building["costValues"]
         );
 
-        const scaledIncreaseValues = Object.entries(
-          building.increaseValues
-        ).reduce((acc, [resourceName, production]) => {
-          const scaledProduction = scaleValue(
-            production.base,
-            newAmount,
-            GAME_CONFIG.PRODUCTION_MULTIPLIER
-          );
-          return {
-            ...acc,
-            [resourceName]: {
-              current: scaledProduction,
-              base: production.base,
-            },
-          };
-        }, {} as Building["increaseValues"]);
+        const scaledIncreaseValues = Object.entries(building.increaseValues).reduce(
+          (acc, [resourceName, production]) => {
+            const scaledProduction = scaleValue(
+              production.base,
+              newAmount,
+              GAME_CONFIG.PRODUCTION_MULTIPLIER
+            );
+            return {
+              ...acc,
+              [resourceName]: {
+                current: scaledProduction,
+                base: production.base,
+              },
+            };
+          },
+          {} as Building["increaseValues"]
+        );
 
         // Update associated resources with the last production value
         const updatedResources = Object.entries(building.increaseValues).reduce(
@@ -438,46 +353,34 @@ export const useGameStore = create<GameStore>((set) => ({
         let updatedResource: Resource | undefined;
 
         // Update associated resources
-        Object.entries(upgrade.effects).forEach(
-          ([resourceName, effectAmount]) => {
-            const resource = state.resources[resourceName as ResourceName];
+        Object.entries(upgrade.effects).forEach(([resourceName, effectAmount]) => {
+          const resource = state.resources[resourceName as ResourceName];
 
-            switch (upgrade.type) {
-              case "POPULATION":
-                const timeOffset = state.populationGenTime * effectAmount;
-                const newTimer = Calc.subtract(
-                  state.populationGenTime,
-                  timeOffset
-                );
-                state.populationGenTime = newTimer;
-                break;
-              case "PRODUCTION":
-                const prodIncrease =
-                  resource.productionValues.perSecond * effectAmount;
-                const newProduction = Calc.add(
-                  resource.productionValues.perSecond,
-                  prodIncrease
-                );
+          switch (upgrade.type) {
+            case "POPULATION":
+              const timeOffset = state.populationGenTime * effectAmount;
+              const newTimer = Calc.subtract(state.populationGenTime, timeOffset);
+              state.populationGenTime = newTimer;
+              break;
+            case "PRODUCTION":
+              const prodIncrease = resource.productionValues.perSecond * effectAmount;
+              const newProduction = Calc.add(resource.productionValues.perSecond, prodIncrease);
 
-                updatedResource = {
-                  ...resource,
-                  productionValues: {
-                    ...resource.productionValues,
-                    perSecond: newProduction,
-                  },
-                };
-                break;
-              case "STORAGE":
-                if (!resource.maxStorage) return;
-                const newMaxStorage = Calc.add(
-                  resource.maxStorage,
-                  effectAmount
-                );
-                updatedResource = { ...resource, maxStorage: newMaxStorage };
-                break;
-            }
+              updatedResource = {
+                ...resource,
+                productionValues: {
+                  ...resource.productionValues,
+                  perSecond: newProduction,
+                },
+              };
+              break;
+            case "STORAGE":
+              if (!resource.maxStorage) return;
+              const newMaxStorage = Calc.add(resource.maxStorage, effectAmount);
+              updatedResource = { ...resource, maxStorage: newMaxStorage };
+              break;
           }
-        );
+        });
 
         return {
           upgrades: { ...state.upgrades, [upgradeName]: updatedUpgrade },
@@ -494,11 +397,7 @@ export const trimToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
-export const scaleValue = (
-  baseValue: number,
-  amount: number,
-  scale: number
-): number => {
+export const scaleValue = (baseValue: number, amount: number, scale: number): number => {
   return trimToTwoDecimals(baseValue * Math.pow(scale, amount));
 };
 
@@ -507,9 +406,12 @@ export const scaleValue = (
  * @description A collection of functions for performing basic arithmetic operations
  * @returns All functions return a number trimmed to two decimal places
  */
-const Calc = {
+export const Calc = {
   add: (a: number, b: number) => trimToTwoDecimals(a + b),
   subtract: (a: number, b: number) => trimToTwoDecimals(a - b),
   multiply: (a: number, b: number) => trimToTwoDecimals(a * b),
   divide: (a: number, b: number) => trimToTwoDecimals(a / b),
+  scale: (baseValue: number, amount: number, scale: number): number => {
+    return trimToTwoDecimals(baseValue * Math.pow(scale, amount));
+  },
 };

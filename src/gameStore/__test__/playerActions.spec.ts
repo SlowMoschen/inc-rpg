@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { useGameStore, GameStore, scaleValue } from "../gameStore";
+import { useGameStore, GameStore } from "../gameStore";
 import { GAME_CONFIG } from "../../gameConfig";
-import { getUpdatedState } from "../../utils";
+import { Calc, getUpdatedState } from "../../utils";
 
 describe("Player actions", () => {
   let GameStore: GameStore;
@@ -51,7 +51,7 @@ describe("Player actions", () => {
       playerActions.addExp(GAME_CONFIG.STARTING_EXP_TO_NEXT_LEVEL);
 
       expect(getUpdatedState().player.level).toBe(2);
-      const expToNextLevel = scaleValue(
+      const expToNextLevel = Calc.scale(
         GAME_CONFIG.STARTING_EXP_TO_NEXT_LEVEL,
         1,
         GAME_CONFIG.EXP_MULTIPLIER

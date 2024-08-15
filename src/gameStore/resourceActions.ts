@@ -1,5 +1,6 @@
 import { ResourceName } from "../gameConfig";
-import { Calc, GameStore } from "./gameStore";
+import { Calc } from "../utils";
+import { GameStore } from "./gameStore";
 import { addExp } from "./playerActions";
 
 const produceResource = (state: GameStore, resourceName: ResourceName, amount: number) => {

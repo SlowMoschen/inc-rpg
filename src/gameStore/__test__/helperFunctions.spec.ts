@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scaleValue, trimToTwoDecimals } from "./gameStore";
+import { Calc, trimToTwoDecimals } from "../../utils";
 
 describe("trimToTwoDecimal", () => {
   it("should return 0 when value is 0", () => {
@@ -28,7 +28,7 @@ describe("scaleValue", () => {
   it("should return the base cost when amount is 0", () => {
     const amount = 0;
 
-    expect(scaleValue(baseCost, amount, scale)).toBe(baseCost);
+    expect(Calc.scale(baseCost, amount, scale)).toBe(baseCost);
   });
 
   it("should return base cost * scale with two fixed decimals", () => {
@@ -37,7 +37,7 @@ describe("scaleValue", () => {
       const expectedValue = baseCost * Math.pow(scale, amount);
       const expectedValueTrimmed = Math.round(expectedValue * 100) / 100;
 
-      expect(scaleValue(baseCost, amount, scale)).toBe(expectedValueTrimmed);
+      expect(Calc.scale(baseCost, amount, scale)).toBe(expectedValueTrimmed);
     }
   });
 });

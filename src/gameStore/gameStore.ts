@@ -10,7 +10,7 @@ import {
   ResourceName,
   Resources,
   UpgradeName,
-  Upgrades
+  Upgrades,
 } from "../gameConfig";
 import { buyBuilding, sellBuilding } from "./buildingAction";
 import { addExp, setName, unlockFeatures } from "./playerActions";
@@ -21,6 +21,7 @@ import {
   produceResource,
   sellResource,
 } from "./resourceActions";
+import { buyUpgrade } from "./upgradeActions";
 
 export interface Player {
   name: string;
@@ -102,76 +103,6 @@ export const useGameStore = create<GameStore>((set) => ({
 
   // MARK: UPGRADE ACTIONS
   upgradeActions: {
-    buy: (upgradeName: UpgradeName) =>
-      set((state) => {
-        const upgrade = state.upgrades[upgradeName];
-        if (!upgrade.isUnlocked) return state;
-
-        state.resourceActions.consume("GOLD", upgrade.cost);
-
-        const updatedUpgrade = { ...upgrade, isPurchased: true };
-        let updatedResource: Resource | undefined;
-
-        // Update associated resources
-        Object.entries(upgrade.effects).forEach(([resourceName, effectAmount]) => {
-          const resource = state.resources[resourceName as ResourceName];
-
-          switch (upgrade.type) {
-            case "POPULATION":
-              const timeOffset = state.populationGenTime * effectAmount;
-              const newTimer = Calc.subtract(state.populationGenTime, timeOffset);
-              state.populationGenTime = newTimer;
-              break;
-            case "PRODUCTION":
-              const prodIncrease = resource.productionValues.perSecond * effectAmount;
-              const newProduction = Calc.add(resource.productionValues.perSecond, prodIncrease);
-
-              updatedResource = {
-                ...resource,
-                productionValues: {
-                  ...resource.productionValues,
-                  perSecond: newProduction,
-                },
-              };
-              break;
-            case "STORAGE":
-              if (!resource.maxStorage) return;
-              const newMaxStorage = Calc.add(resource.maxStorage, effectAmount);
-              updatedResource = { ...resource, maxStorage: newMaxStorage };
-              break;
-          }
-        });
-
-        return {
-          upgrades: { ...state.upgrades, [upgradeName]: updatedUpgrade },
-          resources: updatedResource
-            ? { ...state.resources, [updatedResource.name]: updatedResource }
-            : state.resources,
-        };
-      }),
+    buy: (upgradeName: UpgradeName) => set((state) => buyUpgrade(state, upgradeName)),
   },
 }));
-
-// MARK: HELPER FUNCTIONS
-export const trimToTwoDecimals = (value: number): number => {
-  return Math.round(value * 100) / 100;
-};
-
-export const scaleValue = (baseValue: number, amount: number, scale: number): number => {
-  return trimToTwoDecimals(baseValue * Math.pow(scale, amount));
-};
-
-/**
- * @name Calc
- * @description A collection of functions for performing basic arithmetic operations
- * @returns All functions return a number trimmed to two decimal places
- */
-export const Calc = {
-  add: (a: number, b: number) => trimToTwoDecimals(a + b),
-  subtract: (a: number, b: number) => trimToTwoDecimals(a - b),
-  multiply: (a: number, b: number) => trimToTwoDecimals(a * b),
-  divide: (a: number, b: number) => trimToTwoDecimals(a / b),
-  scale: (baseValue: number, amount: number, scale: number): number => {
-    return trimToTwoDecimals(baseValue * Math.pow(scale, amount));
-  },
-};

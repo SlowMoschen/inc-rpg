@@ -7,7 +7,7 @@ const produceResource = (state: GameStore, resourceName: ResourceName, amount: n
   const resource = state.resources[resourceName];
   if (!resource.isUnlocked) return state;
 
-  let newAmount = Calc.add(resource.stored, amount) * resource.productionValues.multiplier;
+  let newAmount = (Calc.add(resource.stored, amount)) * resource.productionValues.multiplier;
 
   if (resource.maxStorage && newAmount > resource.maxStorage) {
     newAmount = resource.maxStorage;
@@ -49,6 +49,7 @@ const consumeResource = (state: GameStore, resourceName: ResourceName, amount: n
 
 const sellResource = (state: GameStore, resourceName: ResourceName, amount: number) => {
   const resource = state.resources[resourceName];
+  console.log(resource.stored);
   if (!resource.isUnlocked || !resource.sellValues || amount > resource.stored) return state;
 
   const newStoredAmount = Calc.subtract(resource.stored, amount);
@@ -58,7 +59,6 @@ const sellResource = (state: GameStore, resourceName: ResourceName, amount: numb
   );
 
   const { player } = addExp(state, Calc.multiply(resource.sellValues.exp, amount));
-
     return {
         ...state,
         player,

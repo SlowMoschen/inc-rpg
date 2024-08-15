@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { BASE_RESOURCE_NAMES, BASE_RESOURCE_BUILDING_NAMES, GAME_CONFIG, Building, PROCESSED_RESOURCE_BUILDING_NAMES } from "../../gameConfig";
 import { Calc, getUpdatedState, trimToTwoDecimals } from "../../utils";
-import { useGameStore, GameStore } from "../gameStore";
+import { useGameStore, GameStore } from "../_store";
 
 // MARK: - Building actions
 describe("Building actions", () => {

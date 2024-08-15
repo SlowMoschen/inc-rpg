@@ -1,6 +1,6 @@
 import { Building, BuildingName, GAME_CONFIG, ResourceName } from "../gameConfig";
 import { Calc, MapToEntryArray } from "../utils";
-import { GameStore } from "./gameStore";
+import { GameStore } from "./_store";
 import { consumeResource, decProdPerSec, incProdPerSec } from "./resourceActions";
 
 // MARK:- Buy

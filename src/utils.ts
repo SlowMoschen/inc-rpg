@@ -1,4 +1,4 @@
-import { useGameStore } from "./gameStore/gameStore";
+import { useGameStore } from "./gameStore/_store";
 
 /**
  * @description Convert an object to an array of Tuples with the key and value

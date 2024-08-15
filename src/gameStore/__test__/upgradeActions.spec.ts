@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { BASE_RESOURCE_NAMES, BASE_RESOURCE_BUILDING_NAMES } from "../../gameConfig";
 import { getUpdatedState } from "../../utils";
-import { useGameStore, GameStore } from "../gameStore";
+import { useGameStore, GameStore } from "../_store";
 
 describe("Upgrade actions", () => {
   let GameStore: GameStore;

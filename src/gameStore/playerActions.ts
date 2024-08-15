@@ -1,6 +1,6 @@
 import { GAME_CONFIG } from "../gameConfig";
 import { Calc, MapToEntryArray } from "../utils";
-import { GameStore } from "./gameStore";
+import { GameStore } from "./_store";
 
 /**
  * 

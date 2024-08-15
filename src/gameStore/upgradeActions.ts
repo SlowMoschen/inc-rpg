@@ -1,6 +1,6 @@
 import { Resource, ResourceName, UpgradeName } from "../gameConfig";
 import { Calc, MapToEntryArray } from "../utils";
-import { GameStore } from "./gameStore";
+import { GameStore } from "./_store";
 import { consumeResource } from "./resourceActions";
 
 export const buyUpgrade = (state: GameStore, upgradeName: UpgradeName) => {

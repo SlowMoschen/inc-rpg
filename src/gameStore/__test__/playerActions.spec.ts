@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { useGameStore, GameStore } from "../gameStore";
+import { useGameStore, GameStore } from "../_store";
 import { GAME_CONFIG } from "../../gameConfig";
 import { Calc, getUpdatedState } from "../../utils";
 

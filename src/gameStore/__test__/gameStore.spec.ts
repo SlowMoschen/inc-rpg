@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { GAME_CONFIG } from "../../gameConfig";
-import { GameStore, useGameStore } from "../gameStore";
+import { GameStore, useGameStore } from "../_store";
 
 // MARK: - Store initialization
 describe("Initialization", () => {

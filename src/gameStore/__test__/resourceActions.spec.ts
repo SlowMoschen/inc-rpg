@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { BASE_RESOURCE_NAMES, INITIAL_RESOURCES } from "../../gameConfig";
 import { getUpdatedState } from "../../utils";
-import { useGameStore, GameStore } from "../gameStore";
+import { useGameStore, GameStore } from "../_store";
 
 // MARK: - Resource actions
 describe("Resource actions", () => {

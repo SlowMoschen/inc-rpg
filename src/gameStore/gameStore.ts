@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import {
   Building,
-  BuildingCosts,
   BuildingName,
   Buildings,
   GAME_CONFIG,
@@ -12,7 +11,7 @@ import {
   ResourceName,
   Resources,
   UpgradeName,
-  Upgrades,
+  Upgrades
 } from "../gameConfig";
 
 export interface Player {

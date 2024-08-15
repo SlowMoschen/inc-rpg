@@ -13,7 +13,6 @@ import {
   trimToTwoDecimals,
   useGameStore,
 } from "./gameStore";
-import { state } from "lit/decorators.js";
 
 // MARK: - Store initialization
 describe("Initialization", () => {

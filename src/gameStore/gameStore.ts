@@ -14,6 +14,13 @@ import {
   Upgrades,
 } from "../gameConfig";
 import { addExp, setName, unlockFeatures } from "./playerActions";
+import {
+  consumeResource,
+  decProdPerSec,
+  incProdPerSec,
+  produceResource,
+  sellResource
+} from "./resourceActions";
 
 export interface Player {
   name: string;
@@ -71,98 +78,19 @@ export const useGameStore = create<GameStore>((set) => ({
   // MARK: RESOURCE ACTIONS
   resourceActions: {
     produce: (resourceName: ResourceName, amount: number) =>
-      set((state) => {
-        const resource = state.resources[resourceName];
-        if (!resource.isUnlocked) return state;
-
-        let newAmount = Calc.add(resource.stored, amount);
-        if (resource.maxStorage && newAmount > resource.maxStorage) {
-          newAmount = resource.maxStorage;
-        }
-
-        return {
-          resources: {
-            ...state.resources,
-            [resourceName]: { ...resource, stored: newAmount },
-          },
-        };
-      }),
+      set((state) => produceResource(state, resourceName, amount)),
 
     consume: (resourceName: ResourceName, amount: number) =>
-      set((state) => {
-        const resource = state.resources[resourceName];
-        if (amount > resource.stored) return state;
-
-        const newAmount = Calc.subtract(resource.stored, amount);
-        return {
-          resources: {
-            ...state.resources,
-            [resourceName]: { ...resource, stored: newAmount },
-          },
-        };
-      }),
+      set((state) => consumeResource(state, resourceName, amount)),
 
     sell: (resourceName: ResourceName, amount: number) =>
-      set((state) => {
-        const resource = state.resources[resourceName];
-        if (!resource.isUnlocked || !resource.sellValues || amount > resource.stored) return state;
-
-        const updatedStoredAmount = Calc.subtract(resource.stored, amount);
-        const newBalance = Calc.add(
-          state.resources.GOLD.stored,
-          Calc.multiply(resource.sellValues.gold, amount)
-        );
-
-        state.playerActions.addExp(resource.sellValues.exp);
-
-        return {
-          resources: {
-            ...state.resources,
-            [resourceName]: { ...resource, stored: updatedStoredAmount },
-            GOLD: { ...state.resources.GOLD, stored: newBalance },
-          },
-        };
-      }),
+      set((state) => sellResource(state, resourceName, amount)),
 
     increaseProduction: (resourceName: ResourceName, amount: number) =>
-      set((state) => {
-        const resource = state.resources[resourceName];
-        if (!resource.isUnlocked) return state;
-
-        const newProduction = Calc.add(resource.productionValues.perSecond, amount);
-        return {
-          resources: {
-            ...state.resources,
-            [resourceName]: {
-              ...resource,
-              productionValues: {
-                ...resource.productionValues,
-                perSecond: newProduction,
-              },
-            },
-          },
-        };
-      }),
+      set((state) => incProdPerSec(state, resourceName, amount)),
 
     decreaseProduction: (resourceName: ResourceName, amount: number) =>
-      set((state) => {
-        const resource = state.resources[resourceName];
-        if (!resource.isUnlocked) return state;
-
-        const newProduction = Calc.subtract(resource.productionValues.perSecond, amount);
-        return {
-          resources: {
-            ...state.resources,
-            [resourceName]: {
-              ...resource,
-              productionValues: {
-                ...resource.productionValues,
-                perSecond: newProduction,
-              },
-            },
-          },
-        };
-      }),
+      set((state) => decProdPerSec(state, resourceName, amount)),
   },
 
   // MARK: BUILDING ACTIONS

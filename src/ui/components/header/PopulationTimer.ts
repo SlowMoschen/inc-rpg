@@ -50,9 +50,8 @@ export class PopulationTimer extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    if (!this.populationIncTime) {
-      throw new Error("populationIncTime is required");
-    }
+    if (!this.populationIncTime) throw new Error("populationIncTime is required");
+
     this.timer = this.populationIncTime;
     this._startTimer();
   }
@@ -66,9 +65,11 @@ export class PopulationTimer extends LitElement {
     this.interval = setInterval(() => {
       this.timer -= ONE_SECOND;
       this.requestUpdate();
+
       if (this.timer <= 0) {
         this._handleTimerEnd();
       }
+      
     }, ONE_SECOND);
   }
 

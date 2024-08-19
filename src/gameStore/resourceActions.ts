@@ -49,7 +49,6 @@ const consumeResource = (state: GameStore, resourceName: ResourceName, amount: n
 
 const sellResource = (state: GameStore, resourceName: ResourceName, amount: number) => {
   const resource = state.resources[resourceName];
-  console.log(resource.stored);
   if (!resource.isUnlocked || !resource.sellValues || amount > resource.stored) return state;
 
   const newStoredAmount = Calc.subtract(resource.stored, amount);

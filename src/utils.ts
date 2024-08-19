@@ -1,4 +1,6 @@
-import { useGameStore } from "./gameStore/_store";
+import { state } from "lit/decorators.js";
+import { GameStore, useGameStore } from "./gameStore/_store";
+import { LitElement } from "lit";
 
 /**
  * @description Convert an object to an array of Tuples with the key and value
@@ -39,3 +41,20 @@ export const Calc = {
  * @returns - The updated state from the game store
  */
 export const getUpdatedState = () => useGameStore.getState();
+
+/**
+ * @description Class which UI Compoents can extend to automatically update when the game state changes
+ */
+export abstract class GameComponent extends LitElement {
+  @state() gameState: GameStore;
+
+  constructor() {
+    super();
+    this.gameState = useGameStore.getInitialState();
+
+    useGameStore.subscribe(() => {
+      this.gameState = getUpdatedState();
+      this.requestUpdate();
+    });
+  }
+}

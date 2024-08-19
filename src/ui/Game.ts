@@ -1,21 +1,16 @@
-import { html, LitElement } from "lit";
-import { customElement, state } from "lit/decorators.js";
-import { GameStore, useGameStore } from "../gameStore/_store";
-import { MapToEntryArray } from "../utils";
+import { html } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import { GameComponent } from "../utils";
 import "./components/header/GameHeader";
+import "./components/resources/GameResources";
+
+interface UiProps {
+  lastSellValue: number | undefined;
+}
 
 @customElement("game-element")
-export class Game extends LitElement {
-  @state() private gameState: GameStore;
-
-  constructor() {
-    super();
-    this.gameState = useGameStore.getInitialState();
-    useGameStore.subscribe((state) => {
-      this.gameState = state;
-      this.requestUpdate();
-    });
-  }
+export class MainComponent extends GameComponent {
+  @property({ type: Object }) uiProps: UiProps | undefined;
 
   connectedCallback() {
     super.connectedCallback();
@@ -24,30 +19,13 @@ export class Game extends LitElement {
   render() {
     return html`
       <p>
-        <game-header> </game-header>
-        ${this._renderResources()}
+        <game-header .lastSellValue=${this.uiProps?.lastSellValue}></game-header>
+        <game-resources
+          @resource-sell=${(e: CustomEvent) => {
+            this.uiProps = { ...this.uiProps, lastSellValue: e.detail.gold };
+          }}
+        ></game-resources>
       </p>
     `;
-  }
-
-  private _renderResources() {
-    return MapToEntryArray(this.gameState.resources).map(([key, resource]) => {
-      if (!resource.isUnlocked || resource.name === "POPULATION" || resource.name === "GOLD") {
-        return null;
-      }
-
-      return html`
-        <div>
-          <p>${resource.name}: ${resource.stored}</p>
-          <button
-            @click=${() =>
-              this.gameState.resourceActions.produce(key, resource.productionValues.perClick)}
-          >
-            Produce
-          </button>
-          <button @click=${() => this.gameState.resourceActions.sell(key, 1)}>Sell 1</button>
-        </div>
-      `;
-    });
   }
 }

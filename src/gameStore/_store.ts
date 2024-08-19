@@ -6,6 +6,7 @@ import {
   INITIAL_BUILDINGS,
   INITIAL_RESOURCES,
   INITIAL_UPGRADES,
+  Resource,
   ResourceName,
   Resources,
   UpgradeName,
@@ -18,7 +19,7 @@ import {
   decProdPerSec,
   incProdPerSec,
   produceResource,
-  sellResource,
+  sellResource
 } from "./resourceActions";
 import { buyUpgrade } from "./upgradeActions";
 
@@ -46,6 +47,7 @@ export interface GameStore {
     sell: (resourceName: ResourceName, amount: number) => void;
     increaseProduction: (resourceName: ResourceName, amount: number) => void;
     decreaseProduction: (resourceName: ResourceName, amount: number) => void;
+    getResouce: (resourceName: ResourceName) => Resource;
   };
   buildingActions: {
     buy: (buildingName: BuildingName) => void;
@@ -56,7 +58,7 @@ export interface GameStore {
   };
 }
 
-export const useGameStore = create<GameStore>((set) => ({
+export const useGameStore = create<GameStore>((set, get) => ({
   player: {
     name: "Player",
     level: 1,
@@ -89,6 +91,8 @@ export const useGameStore = create<GameStore>((set) => ({
 
     decreaseProduction: (resourceName: ResourceName, amount: number) =>
       set((state) => decProdPerSec(state, resourceName, amount)),
+
+    getResouce: (resourceName: ResourceName) => get().resources[resourceName],
   },
 
   buildingActions: {

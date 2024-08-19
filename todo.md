@@ -5,4 +5,6 @@
 - [X] **Refactor GameStore** - sepperate each function object (eg. buildingActions) into its own file - aswell as the tests for it
   - [X] remove util from gamestore
 - [ ] **Make MVP for UI** - Gamestate is ready for UI
+ - [ ] Figma MockUp/Wireframe
+ - [ ] Icons/Assest hunting
 - [ ] **E2E Test for UI**

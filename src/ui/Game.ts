@@ -10,7 +10,7 @@ interface UiProps {
 
 @customElement("game-element")
 export class MainComponent extends GameComponent {
-  @property({ type: Object }) uiProps: UiProps | undefined;
+  @property({ type: Object }) uiProps: UiProps = { lastSellValue: undefined };
 
   connectedCallback() {
     super.connectedCallback();
@@ -19,13 +19,20 @@ export class MainComponent extends GameComponent {
   render() {
     return html`
       <p>
-        <game-header .lastSellValue=${this.uiProps?.lastSellValue}></game-header>
+        <game-header 
+          .lastSellValues=${{ gold: this.uiProps.lastSellValue }}
+        ></game-header>
         <game-resources
           @resource-sell=${(e: CustomEvent) => {
-            this.uiProps = { ...this.uiProps, lastSellValue: e.detail.gold };
+            const { gold } = e.detail;
+            this._setUiProps({ lastSellValue: gold });
           }}
         ></game-resources>
       </p>
     `;
+  }
+
+  private _setUiProps(props: UiProps) {
+    this.uiProps = { ...this.uiProps, ...props };
   }
 }

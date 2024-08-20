@@ -1,19 +1,23 @@
-import { css, html } from "lit";
+import { css, html, PropertyValues } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { GameComponent } from "../../../utils";
 import "./PopulationTimer";
 
 @customElement("game-header")
 export class GameHeader extends GameComponent {
-  @property({ type: Number }) public lastSellValue: number | undefined;
+  @property({ type: Object }) public lastSellValues: { gold: number | undefined } | undefined =
+    undefined;
 
   static styles = css`
     .gold {
       display: flex;
       align-items: center;
+      position: relative;
     }
 
     .last-sell-value {
+      position: absolute;
+      right: 50%;
       color: green;
       font-size: 1.2rem;
       margin-left: 5px;
@@ -39,9 +43,6 @@ export class GameHeader extends GameComponent {
         <p>Population: ${this.gameState.resources.POPULATION.stored}</p>
         <div class="gold">
           <p>Gold: ${this.gameState.resources.GOLD.stored}</p>
-          ${this.lastSellValue !== undefined
-            ? html`<span class="last-sell-value">+${this.lastSellValue} gold</span>`
-            : ""}
         </div>
         <p>Level: ${this.gameState.player.level}</p>
         <p>Exp: ${this.gameState.player.exp} / ${this.gameState.player.expToNextLevel}</p>
@@ -54,8 +55,25 @@ export class GameHeader extends GameComponent {
             );
           }}
         ></population-timer>
-        <p>Last Sell Value: ${this.lastSellValue}</p>
       </div>
     `;
+  }
+
+  protected update(changedProperties: PropertyValues): void {
+    super.update(changedProperties);
+    if (changedProperties.has("lastSellValues") && this.lastSellValues?.gold) {
+      this._handleSellValueChange();
+    }
+  }
+
+  private _handleSellValueChange() {
+    console.log("lastSellValues changed");
+    const span = document.createElement("span");
+    span.classList.add("last-sell-value");
+    span.textContent = `+${this.lastSellValues?.gold} gold`;
+    this.shadowRoot?.querySelector(".gold")?.appendChild(span);
+    setTimeout(() => {
+      span.remove();
+    }, 1000);
   }
 }

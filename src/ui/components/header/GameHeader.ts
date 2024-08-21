@@ -1,12 +1,49 @@
-import { css, html, PropertyValues } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { GameComponent } from "../../../utils";
+import { Player } from "../../../gameStore/_store";
 import "./PopulationTimer";
+import { Calc } from "../../../utils";
+
+interface ChangeMetrics {
+  curr: number;
+  last: number;
+}
 
 @customElement("game-header")
-export class GameHeader extends GameComponent {
-  @property({ type: Object }) public lastSellValues: { gold: number | undefined } | undefined =
-    undefined;
+export class GameHeader extends LitElement {
+  /**
+   * @name Gold-&-Population
+   * @description custom setter and getter to keep track of the gained resources
+   * - Triggers a visual effect when the resource is gained
+   */
+
+  private _gold: ChangeMetrics = { curr: 0, last: 0 };
+  private _population: ChangeMetrics = { curr: 0, last: 0 };
+
+  @property({ type: Number })
+  set gold(newGold: number) {
+    let goldDiff = Calc.subtract(newGold, this._gold.curr);
+    this._gold = { curr: newGold, last: this._gold.curr };
+    this._handleResourceGain('gold', goldDiff);
+  }
+
+  get gold() {
+    return this._gold.curr;
+  }
+
+  @property({ type: Number })
+  set population(newPopulation: number) {
+    const populationDiff = Calc.subtract(newPopulation, this._population.curr);
+    this._population = { curr: newPopulation, last: this._population.curr };
+    this._handleResourceGain('population', populationDiff);
+  }
+  get population() {
+    return this._population.curr;
+  }
+
+  @property({ type: Number }) maxPopulation?: number | undefined;
+  @property({ type: Object }) player?: Player | undefined;
+  @property({ type: Object }) onTimerEnd?: () => void | undefined;
 
   static styles = css`
     .gold {
@@ -39,39 +76,36 @@ export class GameHeader extends GameComponent {
   render() {
     return html`
       <div>
-        <h1>${this.gameState.player.name}</h1>
-        <p>Population: ${this.gameState.resources.POPULATION.stored}</p>
+        <h1>Game</h1>
+        <p>Name: ${this.player?.name || "Player"}</p>
         <div class="gold">
-          <p>Gold: ${this.gameState.resources.GOLD.stored}</p>
+          <p>Gold: ${this._gold.curr}</p>
         </div>
-        <p>Level: ${this.gameState.player.level}</p>
-        <p>Exp: ${this.gameState.player.exp} / ${this.gameState.player.expToNextLevel}</p>
+        <div class="population">
+          <p>Population: ${this._population.curr} / ${this.maxPopulation}</p>
+        </div>
         <population-timer
           populationIncTime=${5000}
           .onTimerEnd=${() => {
-            this.gameState.resourceActions.produce(
-              "POPULATION",
-              this.gameState.resources.POPULATION.productionValues.perSecond
-            );
+            if (this.onTimerEnd) {
+              this.onTimerEnd();
+            }
           }}
         ></population-timer>
+        <p>EXP: ${this.player?.exp} / ${this.player?.expToNextLevel}</p>
       </div>
     `;
   }
 
-  protected update(changedProperties: PropertyValues): void {
-    super.update(changedProperties);
-    if (changedProperties.has("lastSellValues") && this.lastSellValues?.gold) {
-      this._handleSellValueChange();
-    }
-  }
+  private _handleResourceGain(resource: "gold" | "population", amount: number) {
+    const parentEL = resource === "gold" ? this.shadowRoot?.querySelector(".gold") : this.shadowRoot?.querySelector(".population");
+    if (!parentEL) return;
 
-  private _handleSellValueChange() {
-    console.log("lastSellValues changed");
     const span = document.createElement("span");
     span.classList.add("last-sell-value");
-    span.textContent = `+${this.lastSellValues?.gold} gold`;
-    this.shadowRoot?.querySelector(".gold")?.appendChild(span);
+    span.textContent = `+${amount}`;
+    parentEL.appendChild(span);
+
     setTimeout(() => {
       span.remove();
     }, 1000);

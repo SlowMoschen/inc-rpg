@@ -1,7 +1,7 @@
 import { html } from "lit";
 import { customElement } from "lit/decorators.js";
 import { ResourceName } from "../../../gameConfig";
-import { Calc, GameComponent, MapToEntryArray } from "../../../utils";
+import { GameComponent, MapToEntryArray } from "../../../utils";
 
 @customElement("game-resources")
 export class GameResources extends GameComponent {
@@ -36,11 +36,7 @@ export class GameResources extends GameComponent {
   }
 
   private _handleSell(name: ResourceName, amount: number) {
-    this.gameState.resourceActions.sell(name, amount);
-    const { sellValues } = this.gameState.resourceActions.getResouce(name);
-    if (!sellValues) return;
-
-    const sellValue = Calc.multiply(sellValues.gold, amount);
-    this.dispatchEvent(new CustomEvent("resource-sell", { detail: { gold: sellValue } }));
+    const { resourceActions } = this.gameState;
+    resourceActions.sell(name, amount);
   }
 }

@@ -1,16 +1,11 @@
 import { html } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement } from "lit/decorators.js";
 import { GameComponent } from "../utils";
 import "./components/header/GameHeader";
 import "./components/resources/GameResources";
 
-interface UiProps {
-  lastSellValue: number | undefined;
-}
-
 @customElement("game-element")
 export class MainComponent extends GameComponent {
-  @property({ type: Object }) uiProps: UiProps = { lastSellValue: undefined };
 
   connectedCallback() {
     super.connectedCallback();
@@ -20,19 +15,17 @@ export class MainComponent extends GameComponent {
     return html`
       <p>
         <game-header 
-          .lastSellValues=${{ gold: this.uiProps.lastSellValue }}
-        ></game-header>
-        <game-resources
-          @resource-sell=${(e: CustomEvent) => {
-            const { gold } = e.detail;
-            this._setUiProps({ lastSellValue: gold });
+          .player=${this.gameState.player}
+          .gold=${this.gameState.resources.GOLD.stored}
+          .population=${this.gameState.resources.POPULATION.stored}
+          .maxPopulation=${this.gameState.resources.POPULATION.maxStorage!}
+          .onTimerEnd=${() => {
+            const { resourceActions, resources: { POPULATION } } = this.gameState;
+            resourceActions.produce("POPULATION", POPULATION.productionValues.perSecond);
           }}
-        ></game-resources>
+        ></game-header>
+        <game-resources></game-resources>
       </p>
     `;
-  }
-
-  private _setUiProps(props: UiProps) {
-    this.uiProps = { ...this.uiProps, ...props };
   }
 }

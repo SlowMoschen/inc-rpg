@@ -1,6 +1,14 @@
 import { state } from "lit/decorators.js";
 import { GameStore, useGameStore } from "./gameStore/_store";
 import { LitElement } from "lit";
+import { ResourceGainIndicator } from "./ui/components/shared/ResourceGainIndicator";
+
+export interface CssPostion {
+  top?: number;
+  left?: number;
+  right?: number;
+  bottom?: number;
+}
 
 /**
  * @description Convert an object to an array of Tuples with the key and value
@@ -57,4 +65,19 @@ export abstract class GameComponent extends LitElement {
       this.requestUpdate();
     });
   }
+}
+
+/**
+ * @description Render a resource gain indicator
+ * - Needs to be constructed and appended to the parent element
+ * @param value - The value of the resource gain
+ * @param position - The position of the indicator
+ * @param parent - The parent element to append the indicator to
+ */
+export const renderResourceGainIndicator = (value: number, parent: HTMLElement, position: CssPostion) => {
+  const indicator = new ResourceGainIndicator();
+  indicator.value = value;
+  indicator.position = position;
+
+  parent.appendChild(indicator);
 }

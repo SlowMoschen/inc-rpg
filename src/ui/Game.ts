@@ -19,6 +19,7 @@ export class MainComponent extends GameComponent {
           .gold=${this.gameState.resources.GOLD.stored}
           .population=${this.gameState.resources.POPULATION.stored}
           .maxPopulation=${this.gameState.resources.POPULATION.maxStorage!}
+          .timeToIncPopulation=${this.gameState.populationGenTime}
           .onTimerEnd=${() => {
             const { resourceActions, resources: { POPULATION } } = this.gameState;
             resourceActions.produce("POPULATION", POPULATION.productionValues.perSecond);

@@ -1,8 +1,9 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { Player } from "../../../gameStore/_store";
+import { Calc, renderResourceGainIndicator } from "../../../utils";
+import "../shared/ResourceGainIndicator";
 import "./PopulationTimer";
-import { Calc } from "../../../utils";
 
 interface ChangeMetrics {
   curr: number;
@@ -20,11 +21,16 @@ export class GameHeader extends LitElement {
   private _gold: ChangeMetrics = { curr: 0, last: 0 };
   private _population: ChangeMetrics = { curr: 0, last: 0 };
 
+  private _goldBoxRef?: HTMLElement | null;
+  private _populationBoxRef?: HTMLElement | null;
+
   @property({ type: Number })
   set gold(newGold: number) {
     let goldDiff = Calc.subtract(newGold, this._gold.curr);
     this._gold = { curr: newGold, last: this._gold.curr };
-    this._handleResourceGain('gold', goldDiff);
+    
+    if (!this._goldBoxRef) return;
+    renderResourceGainIndicator(goldDiff, this._goldBoxRef!, { left: 0 });
   }
 
   get gold() {
@@ -35,7 +41,11 @@ export class GameHeader extends LitElement {
   set population(newPopulation: number) {
     const populationDiff = Calc.subtract(newPopulation, this._population.curr);
     this._population = { curr: newPopulation, last: this._population.curr };
-    this._handleResourceGain('population', populationDiff);
+    
+    if (!this._populationBoxRef) return;
+    renderResourceGainIndicator(populationDiff, this._populationBoxRef!, {
+      left: 0,
+    });
   }
   get population() {
     return this._population.curr;
@@ -43,6 +53,7 @@ export class GameHeader extends LitElement {
 
   @property({ type: Number }) maxPopulation?: number | undefined;
   @property({ type: Object }) player?: Player | undefined;
+  @property({ type: Number }) timeToIncPopulation?: number | undefined;
   @property({ type: Object }) onTimerEnd?: () => void | undefined;
 
   static styles = css`
@@ -52,13 +63,11 @@ export class GameHeader extends LitElement {
       position: relative;
     }
 
-    .last-sell-value {
-      position: absolute;
-      right: 50%;
-      color: green;
-      font-size: 1.2rem;
-      margin-left: 5px;
-      animation: fadeOutAndUp 1s ease;
+    .population {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
     }
 
     @keyframes fadeOutAndUp {
@@ -85,7 +94,9 @@ export class GameHeader extends LitElement {
           <p>Population: ${this._population.curr} / ${this.maxPopulation}</p>
         </div>
         <population-timer
-          populationIncTime=${5000}
+          populationIncTime=${
+            this.timeToIncPopulation || 5000
+          }
           .onTimerEnd=${() => {
             if (this.onTimerEnd) {
               this.onTimerEnd();
@@ -97,17 +108,8 @@ export class GameHeader extends LitElement {
     `;
   }
 
-  private _handleResourceGain(resource: "gold" | "population", amount: number) {
-    const parentEL = resource === "gold" ? this.shadowRoot?.querySelector(".gold") : this.shadowRoot?.querySelector(".population");
-    if (!parentEL) return;
-
-    const span = document.createElement("span");
-    span.classList.add("last-sell-value");
-    span.textContent = `+${amount}`;
-    parentEL.appendChild(span);
-
-    setTimeout(() => {
-      span.remove();
-    }, 1000);
+  updated() {
+    this._goldBoxRef = this.shadowRoot?.querySelector(".gold");
+    this._populationBoxRef = this.shadowRoot?.querySelector(".population");
   }
 }

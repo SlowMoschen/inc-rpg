@@ -2,6 +2,7 @@ import { state } from "lit/decorators.js";
 import { GameStore, useGameStore } from "./gameStore/_store";
 import { LitElement } from "lit";
 import { ResourceGainIndicator } from "./ui/components/shared/ResourceGainIndicator";
+import { ToastMessage, ToastType } from "./ui/components/shared/Toast";
 
 export interface CssPostion {
   top?: number;
@@ -80,4 +81,18 @@ export const renderResourceGainIndicator = (value: number, parent: HTMLElement, 
   indicator.position = position;
 
   parent.appendChild(indicator);
+}
+
+/**
+ * @description Render a Toast component
+ * - Needs to be constructed and appended because it will be contidionally rendered in various UI components
+ * @param message - The message to display in the toast
+ * @param type - The type of toast to display
+ */
+export const renderToast = (message: string, type: ToastType) => {
+  const toast = new ToastMessage();
+  toast.message = message;
+  toast.type = type;
+
+  document.body.appendChild(toast);
 }

@@ -6,6 +6,7 @@ import {
   INITIAL_BUILDINGS,
   INITIAL_RESOURCES,
   INITIAL_UPGRADES,
+  Player,
   Resource,
   ResourceName,
   Resources,
@@ -22,13 +23,6 @@ import {
   sellResource
 } from "./resourceActions";
 import { buyUpgrade } from "./upgradeActions";
-
-export interface Player {
-  name: string;
-  level: number;
-  exp: number;
-  expToNextLevel: number;
-}
 
 export interface GameStore {
   player: Player;

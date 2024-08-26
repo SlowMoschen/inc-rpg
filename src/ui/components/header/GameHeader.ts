@@ -1,9 +1,9 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { Player } from "../../../gameStore/_store";
 import { Calc, renderResourceGainIndicator } from "../../../utils";
 import "../shared/ResourceGainIndicator";
 import "./PopulationTimer";
+import { Player } from "../../../gameConfig";
 
 interface ChangeMetrics {
   curr: number;

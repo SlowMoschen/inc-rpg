@@ -1,4 +1,3 @@
-
 // MARK: GAME CONFIG
 export const GAME_CONFIG = {
   EXP_MULTIPLIER: 1.05,
@@ -8,7 +7,23 @@ export const GAME_CONFIG = {
   AUTO_SAVE_KEY: "autoSave",
   STARTING_EXP_TO_NEXT_LEVEL: 100,
   POPULATION_GEN_TIME: 30000, // 30 seconds
+  STORAGE_KEY: "gameState",
 };
+
+export interface SavedState {
+  player: Player;
+  resources: Resources;
+  populationGenTime: number;
+  buildings: Buildings;
+  upgrades: Upgrades;
+}
+
+export interface Player {
+  name: string;
+  level: number;
+  exp: number;
+  expToNextLevel: number;
+}
 
 // MARK: LEVEL UNLOCKS CONFIG
 export const UNLOCK_LEVELS = {

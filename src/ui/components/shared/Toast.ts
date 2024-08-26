@@ -57,14 +57,25 @@ export class ToastMessage extends LitElement {
         .time-indicator {
             height: 5px;
             border-radius: 0 0 0 5px;
-            background: #3498db;
             position: absolute;
             bottom: 0;
             left: 0;
             animation: timeIndicator 3s linear;
         }
 
-        button {
+        .time-indicator.info {
+            background: #2ecc71;
+        }
+        
+        .time-indicator.error {
+            background: #e6da37;
+        }
+        
+        .time-indicator.success {
+            background: #3498db;
+        }
+
+        .close {
             background: none;
             border: none;
             color: red;
@@ -73,6 +84,14 @@ export class ToastMessage extends LitElement {
             position: absolute;
             right: 5px;
             top: 5px;
+        }
+
+        .close:hover {
+            color: darkred;
+        }
+
+        .close.error {
+            color: #000;
         }
 
         @keyframes slideIn {
@@ -107,9 +126,9 @@ export class ToastMessage extends LitElement {
     render() {
         return html`
             <div class="toast ${this.type}">
-                <button @click=${() => this.remove()}>X</button>
+                <button @click=${() => this.remove()} class="close ${this.type}">X</button>
                 <div class="message">${this.message}</div>
-                <div class="time-indicator"></div>
+                <div class="time-indicator ${this.type}"></div>
             </div>
         `;
     }

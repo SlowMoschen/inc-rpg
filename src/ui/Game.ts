@@ -16,16 +16,18 @@ export class MainComponent extends GameComponent {
     super.connectedCallback();
     try {
       await this._loadState();
-      renderToast("Successfully Loaded Game", "success");
+      renderToast("Game successfully restored", "success");
     } catch (e) {
       console.warn(e);
+    } finally {
+      this.isLoading = false;
     }
     this._startAutoSave();
   }
 
   render() {
     return html`
-      ${this.isLoading ? html`<loading-screen message="Loading Saved State"></loading-screen>` : ""}
+      ${this.isLoading ? html`<loading-screen message="Restoring Game"></loading-screen>` : ""}
       <game-header
         .player=${this.gameState.player}
         .gold=${this.gameState.resources.GOLD.stored}
@@ -66,14 +68,13 @@ export class MainComponent extends GameComponent {
   }
 
   private _loadState() {
-    return new Promise<boolean>((res, rej) => {
+    return new Promise<void>((res, rej) => {
       const state = localStorage.getItem(GAME_CONFIG.STORAGE_KEY);
-      if (!state) return rej(false);
+      if (!state) return rej('No saved state found');
 
       const parsedState = JSON.parse(state) as SavedState;
       assignSavedState(this.gameState, parsedState);
-      this.isLoading = false;
-      res(true);
+      res();
     });
   }
 }

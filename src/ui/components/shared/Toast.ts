@@ -125,11 +125,11 @@ export class ToastMessage extends LitElement {
 
     render() {
         return html`
-            <div class="toast ${this.type}">
+            <section class="toast ${this.type}">
                 <button @click=${() => this.remove()} class="close ${this.type}">X</button>
                 <div class="message">${this.message}</div>
                 <div class="time-indicator ${this.type}"></div>
-            </div>
+            </section>
         `;
     }
 
